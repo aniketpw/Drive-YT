@@ -225,6 +225,68 @@ const clients = new Map();
 const tokenChannelCache = new Map();
 let activeJobChannelId = null; // Track which user started the current upload job
 
+// Resolves the channel ID owned by the server's own stored (refresh token)
+// credentials. Cached in memory and persisted so a fresh browser without a
+// client access token still sees the owner's library instead of an empty one.
+let serverChannelIdCache = { id: null, resolvedAt: 0 };
+async function resolveServerChannelId() {
+  const TTL = 6 * 60 * 60 * 1000;
+  if (serverChannelIdCache.id && (Date.now() - serverChannelIdCache.resolvedAt) < TTL) {
+    return serverChannelIdCache.id;
+  }
+  // A dead stored credential can never resolve a channel — let the health
+  // cache absorb repeated failures instead of hitting Google on every poll.
+  const health = await getCredentialHealth();
+  if (health.ok === false) return null;
+  try {
+    const stored = db.getSetting('server_channel_id');
+    if (stored && stored.value) {
+      serverChannelIdCache = { id: stored.value, resolvedAt: Date.now() };
+      return stored.value;
+    }
+    const auth = getOAuth2Client({ headers: {} });
+    if (!auth) return null;
+    const yt = google.youtube({ version: 'v3', auth });
+    const chRes = await yt.channels.list({ part: ['id'], mine: true });
+    const chId = chRes.data.items?.[0]?.id || null;
+    if (chId) {
+      db.setSetting('server_channel_id', chId);
+      serverChannelIdCache = { id: chId, resolvedAt: Date.now() };
+    }
+    return chId;
+  } catch (e) {
+    console.warn('Server channel resolve error:', e.message);
+    return null;
+  }
+}
+
+// Verifies that the stored credential can actually mint access tokens.
+// Cached (including failures) so /api/auth/status stays cheap while staying
+// honest about a dead refresh token / deleted OAuth client.
+let credentialHealthCache = { ok: null, error: null, checkedAt: 0 };
+function resetCredentialHealthCache() {
+  credentialHealthCache = { ok: null, error: null, checkedAt: 0 };
+  serverChannelIdCache = { id: null, resolvedAt: 0 };
+}
+async function getCredentialHealth() {
+  const TTL = 10 * 60 * 1000;
+  if (credentialHealthCache.ok !== null && (Date.now() - credentialHealthCache.checkedAt) < TTL) {
+    return credentialHealthCache;
+  }
+  try {
+    const auth = getOAuth2Client({ headers: {} });
+    if (!auth) {
+      credentialHealthCache = { ok: false, error: 'no_credentials', checkedAt: Date.now() };
+      return credentialHealthCache;
+    }
+    await auth.getAccessToken();
+    credentialHealthCache = { ok: true, error: null, checkedAt: Date.now() };
+  } catch (e) {
+    credentialHealthCache = { ok: false, error: e.message || 'refresh_failed', checkedAt: Date.now() };
+  }
+  return credentialHealthCache;
+}
+
 async function resolveChannelId(req) {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.replace(/^Bearer\s+/i, '').trim();
@@ -241,7 +303,7 @@ async function resolveChannelId(req) {
     }
   }
 
-  if (!token) return null;
+  if (!token) return await resolveServerChannelId();
 
   if (tokenChannelCache.has(token)) {
     return tokenChannelCache.get(token);
@@ -480,6 +542,7 @@ app.get('/api/auth/callback', async (req, res) => {
     const { tokens } = await oauth2Client.getToken(code);
     if (tokens.refresh_token) {
       db.addCredential(clientId, clientSecret, tokens.refresh_token, 'Default');
+      resetCredentialHealthCache();
     }
     
     if (tokens.access_token) {
@@ -494,11 +557,18 @@ app.get('/api/auth/callback', async (req, res) => {
 });
 
 // 4. GET /api/auth/status
-app.get('/api/auth/status', (req, res) => {
+app.get('/api/auth/status', async (req, res) => {
   try {
     const creds = db.getActiveCredentials();
     const hasRefreshToken = creds && creds.length > 0;
-    res.json({ success: true, connected: hasRefreshToken, hasRefreshToken });
+    let credentialHealthy = null;
+    let credentialError = null;
+    if (hasRefreshToken) {
+      const health = await getCredentialHealth();
+      credentialHealthy = health.ok;
+      credentialError = health.error;
+    }
+    res.json({ success: true, connected: hasRefreshToken, hasRefreshToken, credentialHealthy, credentialError });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -1169,6 +1239,15 @@ app.post(['/api/sync-youtube', '/api/sync-youtube-uploads', '/api/channel-videos
     let pageToken = null;
     const channelVideos = [];
 
+    // Load upload history once so user edits (custom title / batch / subject /
+    // upload dates) survive every channel sync instead of being reset by YouTube defaults
+    const existingHistory = loadUploadedHistory();
+    const historyByVideoId = {};
+    for (const h of existingHistory) {
+      const vid = h.videoId || h.id;
+      if (vid && !historyByVideoId[vid]) historyByVideoId[vid] = h;
+    }
+
     do {
       const listRes = await youtube.playlistItems.list({
         part: ['snippet', 'contentDetails', 'status'],
@@ -1190,18 +1269,25 @@ app.post(['/api/sync-youtube', '/api/sync-youtube-uploads', '/api/channel-videos
           ? (snippet.thumbnails.maxres || snippet.thumbnails.standard || snippet.thumbnails.high || snippet.thumbnails.medium || snippet.thumbnails.default).url
           : `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
+        const existing = historyByVideoId[videoId] || null;
+        const mergedTitle = (existing && existing.customTitle) ? existing.customTitle : title;
         const record = {
           id: videoId,
           videoId: videoId,
-          name: title,
-          originalName: title,
-          customTitle: title,
-          batch: channelTitle,
-          subject: 'Lecture',
-          folderPath: channelTitle,
+          // Preserve the original Drive file linkage so Clone-to-Batches can re-upload later
+          driveFileId: (existing && existing.driveFileId) ? existing.driveFileId : ((existing && existing.id && existing.id !== videoId && !String(existing.id).includes('__clone')) ? existing.id : null),
+          // Preserve the kept server-side copy of This-Device uploads (for cloning)
+          localCopy: (existing && existing.localCopy) ? existing.localCopy : null,
+          name: mergedTitle,
+          originalName: (existing && existing.originalName) ? existing.originalName : title,
+          customTitle: mergedTitle,
+          batch: (existing && existing.batch) ? existing.batch : channelTitle,
+          subject: (existing && existing.subject) ? existing.subject : 'Lecture',
+          folderPath: (existing && existing.folderPath) ? existing.folderPath : channelTitle,
           channelId: channelId,
           size: 0,
-          createdTime: publishedAt,
+          createdTime: (existing && existing.createdTime) ? existing.createdTime : publishedAt,
+          uploadedAt: (existing && existing.uploadedAt) ? existing.uploadedAt : publishedAt,
           status: 'completed',
           percentage: 100,
           uploadedBytes: 0,
@@ -1342,6 +1428,165 @@ app.post('/api/retry-pending', async (req, res) => {
       await runUploadQueue(auth);
     } catch (err) {
       console.error('Error during retry-pending queue:', err);
+    }
+  })();
+});
+
+/**
+ * Clone One Video to Multiple Batches — upload once, one copy per batch.
+ * Drive-backed videos only: the same Drive file is re-streamed to YouTube
+ * once per batch code with that batch's metadata.
+ */
+// Manual-upload copies are kept briefly for cloning, then auto-purged
+const MANUAL_COPY_DIR = path.join(__dirname, 'data', 'manual_uploads');
+const MANUAL_COPY_RETENTION_MINUTES = Math.max(5, parseInt(process.env.MANUAL_COPY_RETENTION_MINUTES || '30', 10));
+const MANUAL_COPY_RETENTION_MS = MANUAL_COPY_RETENTION_MINUTES * 60 * 1000;
+// Hard ceiling on total kept copies — guarantees the server disk never overflows
+const MANUAL_COPY_MAX_TOTAL_GB = Math.max(0.01, parseFloat(process.env.MANUAL_COPY_MAX_TOTAL_GB || '20'));
+const MANUAL_COPY_MAX_TOTAL_BYTES = MANUAL_COPY_MAX_TOTAL_GB * 1024 * 1024 * 1024;
+
+function cleanupManualCopies() {
+  try {
+    if (!fs.existsSync(MANUAL_COPY_DIR)) return;
+    const cutoff = Date.now() - MANUAL_COPY_RETENTION_MS;
+    let removed = 0;
+    let freedBytes = 0;
+    let entries = [];
+    for (const f of fs.readdirSync(MANUAL_COPY_DIR)) {
+      const p = path.join(MANUAL_COPY_DIR, f);
+      try {
+        const st = fs.statSync(p);
+        if (!st.isFile()) continue;
+        entries.push({ p, mtime: st.mtimeMs, size: st.size });
+        if (st.mtimeMs < cutoff) {
+          freedBytes += st.size;
+          fs.unlinkSync(p);
+          removed++;
+        }
+      } catch (e) { /* skip unreadable file */ }
+    }
+    // Enforce the total-size ceiling: evict oldest copies first (LRU)
+    let total = entries.reduce((s, e) => s + e.size, 0);
+    if (total > MANUAL_COPY_MAX_TOTAL_BYTES) {
+      entries.sort((a, b) => a.mtime - b.mtime);
+      for (const e of entries) {
+        if (total <= MANUAL_COPY_MAX_TOTAL_BYTES) break;
+        try {
+          fs.unlinkSync(e.p);
+          total -= e.size;
+          freedBytes += e.size;
+          removed++;
+        } catch (err) { /* skip */ }
+      }
+    }
+    if (removed > 0) {
+      console.log(`[manual-copies] Purged ${removed} copy/copies (retention ${MANUAL_COPY_RETENTION_MINUTES} min / cap ${MANUAL_COPY_MAX_TOTAL_GB} GB), freed ${(freedBytes / (1024 * 1024)).toFixed(1)} MB, still kept ${(total / (1024 * 1024)).toFixed(1)} MB`);
+    }
+  } catch (err) {
+    console.warn('Manual copy cleanup failed:', err.message);
+  }
+}
+
+app.post('/api/clone-batches', async (req, res) => {
+  const auth = getOAuth2Client(req);
+  if (!auth) {
+    return res.status(401).json({ success: false, error: 'Google Account authorization token missing. Please connect account first.' });
+  }
+
+  if (jobState.status === 'processing' || jobState.status === 'scanning') {
+    return res.status(400).json({ success: false, error: 'An upload job is already running. Please wait for it to finish before cloning.' });
+  }
+
+  const rawBatches = req.body.batches;
+  let batches = Array.isArray(rawBatches)
+    ? rawBatches.map(b => String(b))
+    : String(rawBatches || '').split(/[\n,;]+/);
+  batches = [...new Set(batches.map(b => b.trim()).filter(Boolean))];
+  if (batches.length === 0) {
+    return res.status(400).json({ success: false, error: 'At least one batch code is required.' });
+  }
+  if (batches.length > 20) {
+    return res.status(400).json({ success: false, error: 'Maximum 20 batch copies at a time.' });
+  }
+
+  const fileId = String(req.body.fileId || '');
+  const titleSuffix = String(req.body.titleSuffix || '').trim();
+
+  const channelId = await resolveChannelId(req);
+  const userId = req.headers['x-user-id'] || req.body?.userId || req.query?.userId || null;
+
+  let source = jobState.files.find(f => f.id === fileId || f.videoId === fileId) || null;
+  if (!source) {
+    const history = (channelId || userId) ? db.getHistoryByUserOrChannel(channelId, userId) : [];
+    source = history.find(f => f.id === fileId || f.videoId === fileId) || null;
+  }
+  if (!source) {
+    return res.status(404).json({ success: false, error: 'Video not found in your library.' });
+  }
+
+  // Clonable = has a Drive file behind it, or a kept server-side copy (This-Device uploads)
+  const driveId = source.driveFileId
+    || (source.id && source.id !== source.videoId ? source.id : null);
+  const localCopy = (source.localCopy && fs.existsSync(source.localCopy)) ? source.localCopy : null;
+  if (!driveId && !localCopy) {
+    return res.status(400).json({ success: false, error: `This video cannot be cloned: Drive uploads need their Drive link, and This-Device uploads need a saved copy (copies are kept for ${MANUAL_COPY_RETENTION_MINUTES} minutes after upload, then auto-deleted — re-upload the original file to clone again).` });
+  }
+  if (!driveId && jobState.processingMode === 'drive_secure') {
+    return res.status(400).json({ success: false, error: 'Drive Secure mode can only clone videos uploaded from Google Drive.' });
+  }
+
+  const baseTitle = sanitizeYouTubeTitle(source.customTitle || source.name || 'YouTube Video');
+  const stamp = Date.now().toString(36);
+
+  const clones = batches.map((batch, i) => ({
+    ...source,
+    id: `${source.videoId || source.id}__clone${stamp}${i}`,
+    driveFileId: driveId || undefined,
+    localCopy: localCopy || undefined,
+    videoId: null,
+    youtubeUrl: null,
+    studioUrl: null,
+    uploadedAt: null,
+    batch,
+    customTitle: titleSuffix
+      ? sanitizeYouTubeTitle(`${baseTitle} ${titleSuffix.replace(/\{batch\}/gi, batch)}`)
+      : baseTitle,
+    status: 'queued',
+    percentage: 0,
+    uploadedBytes: 0,
+    error: null,
+    clonedFrom: fileId
+  }));
+
+  // Preserve completed history in state; clones enter as queued work
+  const preserved = jobState.files.filter(f => f.status === 'completed');
+  jobState.files = [...preserved, ...clones];
+  jobState.stats = {
+    total: jobState.files.length,
+    pending: clones.length,
+    completed: preserved.length,
+    failed: 0
+  };
+  jobState.status = 'processing';
+  jobState.startedAt = new Date().toISOString();
+  if (req.body.privacyStatus) jobState.privacyStatus = req.body.privacyStatus;
+  // Clones should not silently join a previous run's playlist
+  jobState.playlistId = null;
+  jobState.playlistUrl = null;
+
+  const userFilter = (userId || channelId) ? { userId, channelId } : null;
+  addJobLog(`⧉ Clone job: "${baseTitle}" → ${batches.length} batch copies (${batches.join(', ')})`, 'highlight', userFilter);
+  persistJobState();
+  broadcastSSE({ type: 'state_sync', state: jobState }, userFilter);
+
+  res.json({ success: true, clonedCount: clones.length, batches, message: `${clones.length} copies added to the upload queue.` });
+
+  (async () => {
+    activeAbortController = new AbortController();
+    try {
+      await runUploadQueue(auth);
+    } catch (err) {
+      console.error('Clone queue error:', err);
     }
   })();
 });
@@ -1945,9 +2190,24 @@ app.post('/api/delete-video', async (req, res) => {
 
   jobState.files = jobState.files.filter(f => f.id !== fileId && f.videoId !== videoId && f.id !== targetId);
 
+  // Capture kept local copy before removing the record
+  let keptCopyPath = null;
+  try {
+    const delRec = db.loadUploadedHistory().find(f => f.localCopy && (f.id === targetId || f.videoId === targetId));
+    if (delRec) keptCopyPath = delRec.localCopy;
+  } catch (e) { /* non-fatal */ }
+
   // Also remove from DB
   if (fileId) db.deleteHistoryById(fileId);
   if (videoId && videoId !== fileId) db.deleteHistoryById(videoId);
+
+  // Remove the kept local copy (This-Device uploads) if present
+  try {
+    if (keptCopyPath && fs.existsSync(keptCopyPath)) {
+      fs.unlinkSync(keptCopyPath);
+      console.log(`[manual-copies] Deleted local copy for removed video: ${path.basename(keptCopyPath)}`);
+    }
+  } catch (e) { /* non-fatal */ }
 
   jobState.stats = {
     total: jobState.files.length,
@@ -3013,6 +3273,8 @@ app.post('/api/stream-manual-upload', async (req, res) => {
   if (!auth) {
     return res.status(401).json({ success: false, error: 'Google Account not connected.' });
   }
+  let keepPath = null;
+  let localCopy = null;
 
   try {
     const rawTitle = (req.query.title || 'Direct Lecture Video').trim();
@@ -3030,6 +3292,23 @@ app.post('/api/stream-manual-upload', async (req, res) => {
     const tags = ['DirectUpload', 'Lecture', subject, batch].filter(Boolean);
 
     const youtube = google.youtube({ version: 'v3', auth });
+
+    // Keep a server-side copy of this upload so Clone-to-Batches can re-upload it later
+    const MAX_KEEP_BYTES = 4 * 1024 * 1024 * 1024; // skip keeping files over 4GB
+    const contentLength = parseInt(req.headers['content-length'] || '0', 10);
+    let keepStream = null;
+    if (contentLength > 0 && contentLength <= MAX_KEEP_BYTES) {
+      try {
+        fs.mkdirSync(MANUAL_COPY_DIR, { recursive: true });
+        keepPath = path.join(MANUAL_COPY_DIR, `pending_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.tmp`);
+        keepStream = fs.createWriteStream(keepPath);
+        req.pipe(keepStream);
+      } catch (keepErr) {
+        console.warn('Manual copy keep failed to start:', keepErr.message);
+        keepStream = null;
+        keepPath = null;
+      }
+    }
 
     const ytResponse = await youtube.videos.insert({
       part: ['snippet', 'status'],
@@ -3054,6 +3333,23 @@ app.post('/api/stream-manual-upload', async (req, res) => {
     const youtubeUrl = `https://youtu.be/${videoId}`;
     const studioUrl = `https://studio.youtube.com/video/${videoId}/edit`;
     const finalThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+    // Finalize the kept copy now that we know the video id
+    if (keepPath) {
+      try {
+        await new Promise((resolve) => {
+          if (keepStream.writableFinished) return resolve();
+          keepStream.on('finish', resolve);
+          keepStream.on('error', resolve);
+          setTimeout(resolve, 15000); // never block the response on the copy
+        });
+        const finalPath = path.join(MANUAL_COPY_DIR, `${videoId}.video`);
+        try { fs.renameSync(keepPath, finalPath); localCopy = finalPath; }
+        catch (rnErr) {
+          try { fs.copyFileSync(keepPath, finalPath); fs.unlinkSync(keepPath); localCopy = finalPath; } catch (e) {}
+        }
+      } catch (finErr) {}
+    }
     // Add to playlist if requested
     if (playlistName) {
       try {
@@ -3071,6 +3367,7 @@ app.post('/api/stream-manual-upload', async (req, res) => {
     const record = {
       id: videoId,
       videoId: videoId,
+      localCopy: localCopy,
       name: title,
       originalName: title,
       customTitle: title,
@@ -3081,6 +3378,7 @@ app.post('/api/stream-manual-upload', async (req, res) => {
       ownerUserId: userId,
       size: parseInt(req.headers['content-length'] || '0', 10),
       createdTime: new Date().toISOString(),
+      uploadedAt: new Date().toISOString(),
       status: 'completed',
       percentage: 100,
       uploadedBytes: parseInt(req.headers['content-length'] || '0', 10),
@@ -3123,6 +3421,10 @@ app.post('/api/stream-manual-upload', async (req, res) => {
     });
   } catch (err) {
     console.error('Stream manual upload error:', err);
+    // Clean up any half-written local copy
+    try {
+      if (typeof keepPath === 'string' && keepPath && !localCopy && fs.existsSync(keepPath)) fs.unlinkSync(keepPath);
+    } catch (e) {}
     return res.status(500).json({
       success: false,
       error: err.message || 'Direct manual stream to YouTube failed'
@@ -3264,6 +3566,7 @@ app.post('/api/complete-direct-upload', async (req, res) => {
     ownerUserId: userId,
     size: fileSize || 0,
     createdTime: new Date().toISOString(),
+    uploadedAt: new Date().toISOString(),
     status: 'completed',
     percentage: 100,
     uploadedBytes: fileSize || 0,
@@ -3364,6 +3667,9 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(` Web UI: http://localhost:${PORT}                   `);
   console.log(` Database: ${path.join(DATA_DIR, 'app.db')}         `);
   console.log(`====================================================`);
+  // Purge expired This-Device copies on boot, then every 5 minutes
+  cleanupManualCopies();
+  setInterval(cleanupManualCopies, 5 * 60 * 1000);
 });
 
 // ─── Concurrency Limiter ─────────────────────────────────────────────────────
@@ -3596,7 +3902,7 @@ async function executeFileUpload(drive, youtube, auth, fileObj, uploadTitle, cre
 
     try {
       await drive.permissions.create({
-        fileId: fileObj.id,
+        fileId: fileObj.driveFileId || fileObj.id,
         requestBody: { role: 'reader', type: 'anyone' },
         supportsAllDrives: true
       });
@@ -3604,13 +3910,13 @@ async function executeFileUpload(drive, youtube, auth, fileObj, uploadTitle, cre
       if (!permErr.message?.includes('already has access')) throw permErr;
     }
 
-    const embedUrl = `https://drive.google.com/file/d/${fileObj.id}/preview`;
+    const embedUrl = `https://drive.google.com/file/d/${fileObj.driveFileId || fileObj.id}/preview`;
     fileObj.status = 'completed';
     fileObj.percentage = 100;
-    fileObj.videoId = fileObj.id;
+    fileObj.videoId = fileObj.driveFileId || fileObj.id;
     fileObj.youtubeUrl = embedUrl;
     fileObj.studioUrl = '';
-    fileObj.thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileObj.id}&sz=w320`;
+    fileObj.thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileObj.driveFileId || fileObj.id}&sz=w320`;
 
     jobState.stats.pending = Math.max(0, jobState.stats.pending - 1);
     jobState.stats.completed += 1;
@@ -3625,11 +3931,17 @@ async function executeFileUpload(drive, youtube, auth, fileObj, uploadTitle, cre
     return;
   }
 
-  // YouTube Standard mode — stream from Drive to YouTube
-  const driveStreamResponse = await drive.files.get(
-    { fileId: fileObj.id, alt: 'media', supportsAllDrives: true },
-    { responseType: 'stream' }
-  );
+  // YouTube Standard mode — stream from Drive (or a kept local copy) to YouTube
+  let sourceStream;
+  if (fileObj.localCopy && fs.existsSync(fileObj.localCopy)) {
+    sourceStream = fs.createReadStream(fileObj.localCopy);
+  } else {
+    const driveStreamResponse = await drive.files.get(
+      { fileId: fileObj.driveFileId || fileObj.id, alt: 'media', supportsAllDrives: true },
+      { responseType: 'stream' }
+    );
+    sourceStream = driveStreamResponse.data;
+  }
 
   let uploadedBytes = 0;
   let lastReportedPercent = -1;
@@ -3743,6 +4055,7 @@ async function executeFileUpload(drive, youtube, auth, fileObj, uploadTitle, cre
   fileObj.youtubeUrl = youtubeUrl;
   fileObj.studioUrl = studioUrl;
   fileObj.thumbnailUrl = thumbnailUrl;
+  fileObj.uploadedAt = new Date().toISOString();
 
   jobState.stats.pending = Math.max(0, jobState.stats.pending - 1);
   jobState.stats.completed += 1;

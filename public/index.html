@@ -7,16 +7,20 @@
   <!-- Favicon (SVG Play Button Logo) -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231B1B1B'/%3E%3Cpath d='M12 8.5v15l12.5-7.5L12 8.5z' fill='%23FFFFFF'/%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%231B1B1B'/%3E%3Cpath d='M67 42v96l80-48L67 42z' fill='%23FFFFFF'/%3E%3C/svg%3E">
-  <!-- Instant Theme Initializer (0ms Non-Blocking) -->
+  <!-- Instant Theme + Sidebar Initializer (0ms Non-Blocking, Pre-Paint) -->
   <script>
     (function() {
       try {
         const saved = localStorage.getItem('om_theme');
-        const isDark = saved ? saved === 'dark' : false;
+        const isDark = saved ? saved === 'dark' : true;
         if (isDark) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
+        }
+        // Pre-paint sidebar collapse — prevents flash on refresh
+        if (window.innerWidth >= 1024 && localStorage.getItem('om_sidebar') === 'hidden') {
+          document.documentElement.classList.add('sb-collapsed');
         }
       } catch (e) {}
     })();
@@ -33,63 +37,77 @@
   <script src="/thumbcraft_template.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500;1,6..72,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      /* Exact officemobile.vercel.app Light Palette */
-      --bg-main: #EDEAE5;
-      --bg-card: #F6F4F0;
-      --bg-subcard: #FFFFFF;
-      --bg-header: rgba(237, 234, 229, 0.95);
-      --border-main: #D6D3CD;
-      --border-subtle: #E5E1DB;
-      --text-main: #1B1B1B;
-      --text-muted: #78716C;
-      --text-subtle: #A8A29E;
-      --btn-primary-bg: #1B1B1B;
+      /* Geist Light — Vercel-style: neutral surfaces, single blue accent */
+      --bg-main: #FAFAFA;
+      --bg-card: #FFFFFF;
+      --bg-subcard: #F4F4F5;
+      --bg-header: rgba(255, 255, 255, 0.86);
+      --border-main: #EAEAEA;
+      --border-subtle: #F0F0F0;
+      --text-main: #171717;
+      --text-muted: #666666;
+      --text-subtle: #999999;
+      --btn-primary-bg: #2563EB;
       --btn-primary-text: #FFFFFF;
       --btn-secondary-bg: #FFFFFF;
-      --btn-secondary-text: #1B1B1B;
-      --btn-secondary-border: #D6D3CD;
-      --btn-secondary-hover: #F0EDE8;
-      --selection-bg: #1B1B1B;
+      --btn-secondary-text: #171717;
+      --btn-secondary-border: #EAEAEA;
+      --btn-secondary-hover: #F4F4F5;
+      --selection-bg: #2563EB;
       --selection-text: #FFFFFF;
-      --accent-orange: #EA580C;
-      /* Exact officemobile 45-degree diagonal linen micro-texture */
-      --bg-pattern: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(26, 23, 20, 0.035) 0, rgba(26, 23, 20, 0.035) 4px);
+      --accent-orange: #2563EB;
+      --bg-pattern: none;
     }
 
     html.dark {
-      /* Exact officemobile.vercel.app Dark Brutalist Palette */
-      --bg-main: #141210;
-      --bg-card: #191715;
-      --bg-subcard: #1E1C19;
-      --bg-header: rgba(20, 18, 16, 0.95);
-      --border-main: #2C2926;
-      --border-subtle: #24211E;
-      --text-main: #FAF7F2;
-      --text-muted: #8C857E;
-      --text-subtle: #68615A;
-      --btn-primary-bg: #EDE8DE;
-      --btn-primary-text: #141210;
-      --btn-secondary-bg: #1E1C19;
-      --btn-secondary-text: #FAF7F2;
-      --btn-secondary-border: #2C2926;
-      --btn-secondary-hover: #282420;
-      --selection-bg: #EDE8DE;
-      --selection-text: #141210;
-      --accent-orange: #EA580C;
-      /* Exact officemobile 45-degree diagonal charcoal micro-texture */
-      --bg-pattern: repeating-linear-gradient(45deg, transparent, transparent 2px, hsla(35, 41%, 92%, 0.035) 0, hsla(35, 41%, 92%, 0.035) 4px);
+      /* Geist Dark — Vercel-style: pure neutral dark, single blue accent */
+      --bg-main: #0A0A0A;
+      --bg-card: #111111;
+      --bg-subcard: #1A1A1A;
+      --bg-header: rgba(10, 10, 10, 0.86);
+      --border-main: #262626;
+      --border-subtle: #1C1C1C;
+      --text-main: #EDEDED;
+      --text-muted: #A1A1A1;
+      --text-subtle: #6F6F6F;
+      --btn-primary-bg: #3B82F6;
+      --btn-primary-text: #FFFFFF;
+      --btn-secondary-bg: #1A1A1A;
+      --btn-secondary-text: #EDEDED;
+      --btn-secondary-border: #2E2E2E;
+      --btn-secondary-hover: #262626;
+      --selection-bg: #3B82F6;
+      --selection-text: #FFFFFF;
+      --accent-orange: #3B82F6;
+      --bg-pattern: none;
     }
     
     body { 
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-family: 'Raleway', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       background-color: var(--bg-main);
       background-image: var(--bg-pattern);
       background-attachment: fixed;
       color: var(--text-main);
+    }
+
+    /* Ambient glow — Geist keeps it barely-there (paints under content) */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(1100px 480px at 50% -10%, rgba(37, 99, 235, 0.045), transparent 62%);
+    }
+    html.dark body::before {
+      background:
+        radial-gradient(1200px 520px at 50% -12%, rgba(59, 130, 246, 0.055), transparent 62%),
+        radial-gradient(1400px 700px at 50% 118%, rgba(255, 255, 255, 0.025), transparent 60%);
     }
 
     /* Silky Smooth Theme Transition Engine Across UI Elements */
@@ -131,19 +149,28 @@
       animation: dropdownCascadeDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
+    /* Modern app typography: drop the terminal look, keep tabular numbers */
     .font-serif-editorial {
-      font-family: 'Newsreader', Georgia, serif;
+      font-family: 'Raleway', system-ui, sans-serif;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: -0.01em;
     }
-    
+
     .font-mono-code {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-family: 'Raleway', system-ui, sans-serif;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
     }
-    
+
     /* Clean Minimal Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-main); }
-    ::-webkit-scrollbar-thumb { background: var(--border-main); }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text-subtle) 38%, transparent); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+    ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--text-muted) 60%, transparent); border: 2px solid transparent; background-clip: content-box; }
+
+    /* Brand selection color */
+    ::selection { background: var(--selection-bg); color: var(--selection-text); }
     
     .om-border {
       border: 1px solid var(--border-main);
@@ -176,36 +203,9 @@
 
     /* ═══════════════════════════════════════════════════
        MOBILE RESPONSIVE ENHANCEMENTS (< 640px)
-       Pure CSS — zero logic / zero JS changes
+       Sidebar-drawer layout aware
        ═══════════════════════════════════════════════════ */
     @media (max-width: 639px) {
-      /* Navbar: horizontal scroll strip instead of wrapping */
-      header .max-w-\[1400px\] {
-        flex-wrap: nowrap !important;
-        gap: 0.5rem !important;
-      }
-      header .max-w-\[1400px\] > div:last-child {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        gap: 0.35rem !important;
-        flex-wrap: nowrap !important;
-        padding-bottom: 2px;
-      }
-      header .max-w-\[1400px\] > div:last-child::-webkit-scrollbar {
-        display: none;
-      }
-      /* Slightly smaller nav buttons on mobile */
-      header .max-w-\[1400px\] > div:last-child button,
-      header .max-w-\[1400px\] > div:last-child a,
-      header .max-w-\[1400px\] > div:last-child > div {
-        flex-shrink: 0;
-        height: 2rem;
-        font-size: 10px;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-      }
-
       /* Main container: tighter padding on mobile */
       main.flex-1 {
         padding-left: 1rem !important;
@@ -243,95 +243,727 @@
         height: 2.25rem !important;
       }
     }
+
+    /* ═══════════════════════════════════════════════════
+       STUDIO LAYER — Sidebar + Views (Plain Flat Look)
+       ═══════════════════════════════════════════════════ */
+
+    /* Sidebar offset for the whole app shell (desktop) + Inkwise slider collapse */    @media (min-width: 1024px) {
+      body { padding-left: 248px; transition: padding-left .28s cubic-bezier(0.4,0,0.2,1), background-color 350ms cubic-bezier(0.4,0,0.2,1); }
+      body.sidebar-collapsed, html.sb-collapsed body { padding-left: 68px; }
+      body.sidebar-collapsed #appSidebar, html.sb-collapsed #appSidebar {
+        width: 68px !important;
+        transform: none !important;
+      }
+      #appSidebar { transition: transform .3s cubic-bezier(0.4,0,0.2,1), width .28s cubic-bezier(0.4,0,0.2,1), background-color 350ms cubic-bezier(0.4,0,0.2,1); }
+
+      /* ── Rail mode: icons only, everything text slides away ── */
+      /* Brand row: centered logo, hide wordmark + close arrow */
+      body.sidebar-collapsed #appSidebar > div:first-child,
+      html.sb-collapsed #appSidebar > div:first-child { justify-content: center; padding-left: 8px; padding-right: 8px; }
+      body.sidebar-collapsed #appSidebar > div:first-child > div:first-child,
+      html.sb-collapsed #appSidebar > div:first-child > div:first-child { gap: 0; }
+      body.sidebar-collapsed #appSidebar > div:first-child > div:first-child > div:last-child,
+      html.sb-collapsed #appSidebar > div:first-child > div:first-child > div:last-child { display: none; }
+      body.sidebar-collapsed #appSidebar > div:first-child > button,
+      html.sb-collapsed #appSidebar > div:first-child > button { display: none; }
+
+      /* Section labels + recent list disappear in rail */
+      body.sidebar-collapsed #appSidebar .app-side-label,
+      html.sb-collapsed #appSidebar .app-side-label,
+      body.sidebar-collapsed #sideRecentWrap,
+      html.sb-collapsed #sideRecentWrap { display: none; }
+
+      /* Nav rows: icon centered, labels hidden (status dots stay visible) */
+      body.sidebar-collapsed #appSidebar nav button,
+      html.sb-collapsed #appSidebar nav button { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+      body.sidebar-collapsed #appSidebar nav button span:not(.w-2),
+      html.sb-collapsed #appSidebar nav button span:not(.w-2) { display: none; }
+      body.sidebar-collapsed .app-nav-item,
+      html.sb-collapsed .app-nav-item { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+      body.sidebar-collapsed .app-nav-item span,
+      html.sb-collapsed .app-nav-item span { display: none; }
+      body.sidebar-collapsed #appSidebar nav a,
+      html.sb-collapsed #appSidebar nav a { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+      body.sidebar-collapsed #appSidebar nav a span,
+      html.sb-collapsed #appSidebar nav a span { display: none; }
+
+      /* Connected badges shrink to a status dot */
+      body.sidebar-collapsed #navConnectedBadge,
+      html.sb-collapsed #navConnectedBadge { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+      body.sidebar-collapsed #navConnectedBadge span.leading-tight,
+      html.sb-collapsed #navConnectedBadge span.leading-tight,
+      body.sidebar-collapsed #navConnectedBadge button,
+      html.sb-collapsed #navConnectedBadge button { display: none; }
+      body.sidebar-collapsed #navEditorConnectedBadge,
+      html.sb-collapsed #navEditorConnectedBadge { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+      body.sidebar-collapsed #navEditorEmailLabel,
+      html.sb-collapsed #navEditorEmailLabel,
+      body.sidebar-collapsed #navEditorConnectedBadge button,
+      html.sb-collapsed #navEditorConnectedBadge button { display: none; }
+
+      /* Footer utilities stack vertically as icons */
+      body.sidebar-collapsed #appSidebar > div:last-child,
+      html.sb-collapsed #appSidebar > div:last-child { flex-direction: column; gap: 6px; }
+      body.sidebar-collapsed #appSidebar > div:last-child button,
+      html.sb-collapsed #appSidebar > div:last-child button { justify-content: center; gap: 0; width: 100%; }
+      body.sidebar-collapsed #appSidebar > div:last-child button span:not(#soundIcon):not(#headerThemeIcon),
+      html.sb-collapsed #appSidebar > div:last-child button span:not(#soundIcon):not(#headerThemeIcon) { display: none; }
+    }
+
+    /* Readability floor — bump the tiniest type sizes app-wide */
+    .text-\[8px\]  { font-size: 9.5px !important; }
+    .text-\[9px\]  { font-size: 10.5px !important; }
+    .text-\[10px\] { font-size: 11.5px !important; }
+
+    /* Sidebar shell — layered depth over the ambient canvas */
+    #appSidebar {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 250, 250, 0.96));
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      box-shadow: 4px 0 32px -14px rgba(0,0,0,0.18);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html.dark #appSidebar {
+      background: linear-gradient(180deg, rgba(10, 10, 10, 0.92), rgba(17, 17, 17, 0.96));
+      box-shadow: 4px 0 44px -14px rgba(0,0,0,0.8), inset -1px 0 0 rgba(255, 255, 255, 0.05);
+    }
+    /* Kill stray horizontal scroll inside the sidebar */
+    #appSidebar nav { overflow-x: hidden; }
+    #appSidebar > div:first-child,
+    #appSidebar > div:last-child { overflow: hidden; }
+    #navConnectedBadge .leading-tight,
+    #navEditorEmailLabel { flex: 1 1 0; min-width: 0; }
+
+    /* Uniform full-width rows for every button living in the sidebar */
+    #appSidebar nav button,
+    #appSidebar nav > div > button,
+    #appSidebar nav > div[id] {
+      width: 100%;
+      justify-content: flex-start;
+      font-size: 12.5px;
+      height: auto;
+      min-height: 38px;
+      padding: 8px 12px;
+      text-transform: none;
+      letter-spacing: 0.01em;
+      font-weight: 600;
+    }
+
+    /* Primary nav items (view switcher) */
+    .app-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      background: transparent;
+    }
+    .app-nav-item:hover { color: var(--text-main); background: var(--btn-secondary-hover); }
+    .app-nav-item.active {
+      background: var(--btn-primary-bg);
+      color: #FFFFFF;
+      box-shadow: 0 2px 10px -4px rgba(59, 130, 246, 0.5);
+    }
+    .app-nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    /* Sidebar section labels */
+    .app-side-label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      padding: 0 10px;
+      margin: 14px 0 6px 0;
+    }
+
+    /* View sections: soft entrance */
+    #view-upload:not(.hidden), #view-library:not(.hidden) {
+      animation: viewFadeSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes viewFadeSlide {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Table row hover polish */
+    #trackingTableBody tr { transition: background-color 0.12s ease; }
+    #trackingTableBody tr:hover { background: color-mix(in srgb, var(--btn-primary-bg) 4%, transparent); }
+
+    /* Nicer empty state inside the table */
+    #emptyRow td { padding: 56px 16px !important; }
+
+    /* ═══════════════════════════════════════════════════
+       MODERN APP COMPONENT LAYER
+       ═══════════════════════════════════════════════════ */
+
+    /* Views sit directly on the page canvas — no boxed card chrome */
+    #uploadStudioCard, #libraryCard {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+
+    /* Table container & filter bar: borderless flat */
+    #libraryCard .overflow-x-auto { border-radius: 12px; border: 0 !important; }
+    #filterStatsBar { border-radius: 10px; border: 0 !important; background: transparent !important; padding-left: 0 !important; padding-right: 0 !important; }
+    #toast { border-radius: 12px; }
+
+    /* Buttons: modern radius, weight, tactile press */
+    button {
+      border-radius: 9px;
+      font-weight: 600;
+      transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, opacity .15s ease, transform .1s ease;
+    }
+    button:active { transform: scale(0.98); }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--accent-orange) 60%, transparent);
+      outline-offset: 2px;
+    }
+
+    /* Inputs: borderless fill-only, soft focus ring */
+    .om-box-input {
+      border-radius: 10px !important;
+      background: var(--bg-subcard) !important;
+      border-color: transparent !important;
+    }
+    .om-box-input:focus {
+      background: var(--bg-subcard) !important;
+      border-color: transparent !important;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-orange) 18%, transparent);
+    }
+
+    /* Library search: Inkwise-style pill field */
+    #tableSearchInput {
+      background: var(--bg-subcard) !important;
+      border: 1px solid var(--border-main) !important;
+      border-radius: 999px !important;
+      padding: 8px 38px 8px 16px !important;
+    }
+    #tableSearchInput:focus {
+      border-color: color-mix(in srgb, var(--accent-orange) 55%, var(--border-main)) !important;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-orange) 15%, transparent);
+    }
+
+    /* Table: drop grid lines, breathe rows — modern data table */
+    #trackingTableBody td, thead th { border-right-width: 0 !important; }
+    #trackingTableBody td { padding-top: 11px !important; padding-bottom: 11px !important; }
+    #trackingTableBody tr:hover { background: color-mix(in srgb, var(--bg-subcard) 45%, var(--bg-card)); }
+
+    /* Primary (accent) buttons — Geist flat solid, crisp edge */
+    .bg-\[var\(--btn-primary-bg\)\] {
+      background-image: none;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+    html.dark .bg-\[var\(--btn-primary-bg\)\] {
+      background-image: none;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.07);
+    }
+
+    /* Modal & popover panels: rounded, layered, crisp 1px border */
+    div[id$="Modal"] > div {
+      border-radius: 14px;
+      border-width: 1px !important;
+      overflow: hidden;
+      box-shadow: 0 8px 24px -6px rgba(0,0,0,0.28), 0 24px 60px -12px rgba(0,0,0,0.35);
+    }
+    #calendarPopover, #scanCalendarPopover, #exportDropdownMenu { border-radius: 12px; }
+
+    /* Inner boxes inside modals: rounded, lighter borders */
+    div[id$="Modal"] .bg-\[var\(--bg-subcard\)\] { border-radius: 10px; }
+    #manualDropzone { border-radius: 12px; }
+
+    /* Quota meter pill: rounded */
+    #navQuotaMeterBtn { border-radius: 999px; }
+
+    /* ── Upload Pipeline: selectable source tiles ── */
+    .source-tile {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border-main);
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    html.dark .source-tile { background: color-mix(in srgb, var(--bg-subcard) 28%, var(--bg-card)); }
+    .source-tile:hover {
+      border-color: color-mix(in srgb, var(--accent-orange) 45%, var(--border-main));
+      transform: translateY(-1px);
+    }
+    .source-tile.active {
+      border-color: color-mix(in srgb, var(--accent-orange) 65%, var(--border-main));
+      background: color-mix(in srgb, var(--accent-orange) 7%, var(--bg-card));
+      box-shadow: 0 8px 24px -14px rgba(59, 130, 246, 0.45);
+    }
+    .source-tile-icon {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in srgb, var(--accent-orange) 11%, transparent);
+      color: var(--accent-orange);
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+    }
+    .source-tile.active .source-tile-icon {
+      background: var(--accent-orange);
+      color: #FFFFFF;
+      box-shadow: 0 3px 12px -4px rgba(59, 130, 246, 0.6);
+    }
+    .source-tile-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .source-tile-title { font-weight: 700; font-size: 14px; color: var(--text-main); line-height: 1.2; }
+    .source-tile-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.35; }
+    .source-tile-check {
+      position: absolute; top: 10px; right: 10px;
+      width: 20px; height: 20px;
+      border-radius: 999px;
+      background: var(--accent-orange);
+      color: #FFFFFF;
+      display: none; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 900;
+      box-shadow: 0 2px 8px -2px rgba(59, 130, 246, 0.6);
+    }
+    .source-tile.active .source-tile-check { display: flex; }
+
+    /* ── Upload Pipeline: folder URL hero input ── */
+    textarea#folderInput {
+      background: var(--bg-subcard) !important;
+      border: 1px solid transparent !important;
+      border-radius: 12px !important;
+      padding: 14px 46px 14px 14px !important;
+      min-height: 54px !important;
+      font-size: 13px;
+      transition: background .15s ease, box-shadow .15s ease;
+    }
+    textarea#folderInput:focus {
+      border-color: transparent !important;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-orange) 16%, transparent);
+    }
+    div.relative:has(> #folderInput) > button {
+      top: 16px !important;
+    }
+
+    /* Launch bar: prominent anchor */
+    #launchBar { padding: 18px 20px !important; border-radius: 16px !important; }
+
+    /* Launch bar: prominent anchor */
+    #launchBar { padding: 18px 20px !important; border-radius: 16px !important; }
+
+    /* ── Library: List ⇄ Grid view ── */
+    #gridViewWrap.hidden, #listViewWrap.hidden { display: none !important; }
+    .lib-view-btn {
+      width: 28px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; border: 0;
+      background: transparent; color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .lib-view-btn:hover { color: var(--text-main); }
+    .lib-view-btn.active {
+      background: var(--btn-primary-bg);
+      color: #FFFFFF;
+      box-shadow: 0 1px 6px -2px rgba(59, 130, 246, 0.5);
+    }
+    .lib-view-btn svg { width: 13px; height: 13px; }
+
+    .grid-video-card {
+      position: relative;
+      border: 1px solid var(--border-main);
+      border-radius: 14px;
+      background: var(--bg-card);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    html.dark .grid-video-card { background: color-mix(in srgb, var(--bg-subcard) 30%, var(--bg-card)); }
+    .grid-video-card:hover {
+      border-color: color-mix(in srgb, var(--accent-orange) 50%, var(--border-main));
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.45);
+    }
+    .grid-video-thumb {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: #0A0C10;
+      overflow: hidden;
+    }
+    .grid-video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .grid-video-thumb::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.45));
+      pointer-events: none;
+    }
+    .grid-play-badge {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      width: 44px; height: 44px;
+      border-radius: 999px;
+      background: #2563EB;
+      color: #FFFFFF;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transition: all 0.18s ease;
+      box-shadow: 0 6px 20px -6px rgba(37, 99, 235, 0.65);
+      z-index: 2;
+    }
+    .grid-video-card:hover .grid-play-badge { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .grid-status-badge { position: absolute; top: 8px; left: 8px; z-index: 2; }
+    .grid-card-title {
+      font-size: 12px; font-weight: 700; color: var(--text-main);
+      line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; min-height: 2.6em;
+    }
+    .grid-card-actions { display: flex; gap: 6px; }
+    .grid-card-actions button {
+      flex: 1; height: 26px;
+      font-size: 10px; font-weight: 700;
+      border-radius: 7px;
+      border: 1px solid var(--border-main);
+      background: var(--bg-subcard);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.13s ease;
+    }
+    html.dark .grid-card-actions button { color: var(--text-main); }
+    .grid-card-actions button:hover {
+      border-color: color-mix(in srgb, var(--accent-orange) 55%, var(--border-main));
+      color: var(--accent-orange);
+    }
+
+    /* ── Inkwise-style: batch chip overlay on grid thumbnails ── */
+    .grid-batch-chip {
+      position: absolute; bottom: 8px; left: 8px; z-index: 2;
+      max-width: 62%;
+      padding: 3px 8px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #171717;
+      font-size: 9.5px; font-weight: 800;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      box-shadow: 0 2px 10px -3px rgba(0, 0, 0, 0.4);
+    }
+    html.dark .grid-batch-chip { background: rgba(26, 26, 26, 0.94); color: var(--accent-orange); }
+    .grid-src-yt {
+      font-size: 9px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase;
+      color: #FF0033;
+    }
+    html.dark .grid-src-yt { color: #FF5C7A; }
+    .grid-src-drive {
+      font-family: Raleway, sans-serif;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase;
+      color: var(--text-subtle);
+    }
+
+    /* Inkwise-style pastel icon chips on source tiles */
+    .source-tile-icon.chip-blue { background: rgba(99, 102, 241, 0.13); color: #6366F1; }
+    .source-tile-icon.chip-green { background: rgba(16, 185, 129, 0.13); color: #10B981; }
+    .source-tile.active .source-tile-icon.chip-blue {
+      background: linear-gradient(135deg, #818CF8 0%, #6366F1 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px -4px rgba(99, 102, 241, 0.6);
+    }
+    .source-tile.active .source-tile-icon.chip-green {
+      background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px -4px rgba(16, 185, 129, 0.55);
+    }
+
+    /* Sidebar: recent uploads (Inkwise "Last Updates") */
+    .side-recent-item {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 6px 10px;
+      border-radius: 9px; border: 0; background: transparent;
+      cursor: pointer; text-align: left;
+      transition: background 0.14s ease;
+    }
+    .side-recent-item:hover { background: var(--btn-secondary-hover); }
+    .side-recent-dot {
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--accent-orange);
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-orange) 16%, transparent);
+    }
+    .side-recent-title {
+      flex: 1; min-width: 0;
+      font-size: 11.5px; font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: color 0.14s ease;
+    }
+    .side-recent-item:hover .side-recent-title { color: var(--text-main); }
+    .side-recent-time {
+      font-size: 9px; font-weight: 700;
+      color: var(--text-subtle);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Search input: "/" kbd hint */
+    .search-kbd {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      padding: 1px 7px;
+      border-radius: 6px;
+      border: 1px solid var(--border-main);
+      background: var(--bg-subcard);
+      color: var(--text-subtle);
+      font-size: 10px; font-weight: 800;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    #tableSearchInput:focus ~ .search-kbd,
+    #tableSearchInput:not(:placeholder-shown) ~ .search-kbd { opacity: 0; }
+
+    /* ── This-Device panel (adopted manual upload content) ── */
+    #mode-manual .bg-\[var\(--bg-subcard\)\]:not(#manualDropzone) {
+      border: 0 !important;
+      background: color-mix(in srgb, var(--bg-subcard) 35%, var(--bg-card)) !important;
+      border-radius: 12px;
+    }
+
+    /* ── Plain pass: strip remaining nested box chrome ── */
+    #libraryCard > button {
+      border: 0 !important;
+      background: transparent !important;
+      color: var(--text-muted) !important;
+    }
+    #libraryCard > button:hover { color: var(--text-main) !important; }
+    #quickStartCard .grid > .rounded-xl {
+      border: 0 !important;
+      background: color-mix(in srgb, var(--bg-subcard) 35%, var(--bg-card)) !important;
+    }
+    #libraryCard thead tr {
+      background: color-mix(in srgb, var(--bg-subcard) 35%, var(--bg-card)) !important;
+    }
+
+    /* ── Responsive modals + mobile UX polish ── */
+    div[id$="Modal"] .max-h-\[80vh\], div[id$="Modal"] .overflow-y-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 639px) {
+      /* Stack two-column form grids inside modals & manual panel */
+      div[id$="Modal"] .grid-cols-2,
+      div[id$="Modal"] .sm\:grid-cols-2,
+      #mode-manual .grid-cols-2,
+      #mode-manual .sm\:grid-cols-2 { grid-template-columns: 1fr !important; }
+      div[id$="Modal"] > div { max-height: 94vh; }
+      /* Tighter cards, wider toast, 44px touch targets */
+      #uploadStudioCard, #libraryCard, #quickStartCard { padding: 0.9rem !important; }
+      #toast { max-width: 92vw; }
+      .app-nav-item { min-height: 44px; }
+      #appSidebar nav button,
+      #appSidebar nav > div > button,
+      #appSidebar nav > div[id] { min-height: 44px; }
+      /* Header: keep quota pill compact */
+      #headerViewTitle { font-size: 14px; }
+    }
   </style>
 </head>
 <body class="min-h-full flex flex-col selection:bg-[var(--selection-bg)] selection:text-[var(--selection-text)]">
 
-  <!-- 1. Minimal Flat Editorial Header -->
-  <header class="w-full border-b border-[var(--border-main)] px-3 sm:px-6 py-2.5 sm:py-3 bg-[var(--bg-header)] backdrop-blur-xs sticky top-0 z-40">
-    <div class="w-full max-w-[1536px] mx-auto flex items-center justify-between flex-wrap gap-2">
-      
-      <!-- Brand Logo -->
-      <div class="flex items-center gap-2 sm:gap-2.5">
-        <div class="w-7 h-7 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center font-bold text-xs shadow-xs">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+  <!-- 0. Studio Sidebar Navigation (Full Redesign) -->
+  <aside id="appSidebar" class="fixed inset-y-0 left-0 z-50 w-[248px] flex flex-col border-r border-[var(--border-main)] -translate-x-full lg:translate-x-0 select-none">
+
+    <!-- Sidebar Brand -->
+    <div class="flex items-center justify-between gap-2 px-5 h-16 border-b border-[var(--border-main)] shrink-0">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div onclick="setSidebarCollapsed(false)" title="Expand menu" class="w-8 h-8 rounded-[10px] bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center font-bold shadow-xs shrink-0 cursor-pointer">
+          <svg class="w-4.5 h-4.5" width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
           </svg>
         </div>
-        <div class="text-[15px] sm:text-[17px] tracking-tight font-medium text-[var(--text-main)]">
-          Drive <span class="font-serif-editorial italic font-normal text-lg sm:text-xl text-[var(--btn-primary-bg)]">to YouTube</span>
+        <div class="text-[14px] tracking-tight font-semibold text-[var(--text-main)] leading-tight truncate">
+          Drive <span class="font-serif-editorial italic font-normal text-[15px] text-[var(--accent-orange)]">to YouTube</span>
+          <div class="font-mono-code text-[9px] font-bold uppercase tracking-widest text-[var(--text-subtle)]">Studio Portal</div>
+        </div>
+      </div>
+      <!-- Sidebar hide/close (works on desktop collapse + mobile drawer) -->
+      <button type="button" onclick="closeSidebar()" class="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--btn-secondary-hover)] cursor-pointer shrink-0" title="Hide menu">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m-7 7h16"/></svg>
+      </button>
+    </div>
+
+    <!-- Sidebar Body: Nav + Actions + Account -->
+    <nav class="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
+
+      <div class="app-side-label">Workspace</div>
+
+      <button type="button" id="navViewUpload" onclick="switchAppView('upload')" class="app-nav-item" title="Scan Drive folders & upload to YouTube">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        <span>Upload Pipeline</span>
+      </button>
+
+      <button type="button" id="navViewLibrary" onclick="switchAppView('library')" class="app-nav-item" title="Browse, filter & manage uploaded videos">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-3.5-2-3.5 2-3.5-2L5 21V5zM9 7h6M9 11h6M9 15h4"/></svg>
+        <span>Library</span>
+        <span id="sideLibCount" class="ml-auto font-mono-code text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--btn-secondary-hover)] text-[var(--text-muted)]">0</span>
+      </button>
+
+      <button type="button" id="navViewThumb" onclick="switchAppView('thumbcraft')" class="app-nav-item" title="Design thumbnails in the built-in ThumbCraft Studio">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+        <span>ThumbCraft</span>
+      </button>
+
+      <!-- Recent uploads (Inkwise-style Last Updates) -->
+      <div id="sideRecentWrap" class="hidden">
+        <div class="app-side-label flex items-center justify-between">
+          <span>Recent</span>
+          <span id="sideRecentCount" class="font-mono-code text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--btn-secondary-hover)] text-[var(--text-muted)]">0</span>
+        </div>
+        <div id="sideRecentList" class="space-y-0.5"></div>
+      </div>
+
+      <div class="app-side-label">Actions</div>
+
+      <button type="button" onclick="syncYouTubeUploads()" class="flex items-center gap-2.5 px-3 py-2 rounded-[10px] font-semibold text-[12.5px] text-[var(--text-main)] hover:bg-[var(--btn-secondary-hover)] cursor-pointer transition-colors w-full" title="Sync live videos from your YouTube channel">
+        <svg class="w-[17px] h-[17px] text-rose-500 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        <span>Sync Channel</span>
+      </button>
+
+      <button type="button" onclick="openQuotaTrackerModal()" class="flex items-center gap-2.5 px-3 py-2 rounded-[10px] font-semibold text-[12.5px] text-[var(--text-main)] hover:bg-[var(--btn-secondary-hover)] cursor-pointer transition-colors w-full" title="Live API quota, time estimates & health breakdown">
+        <svg class="w-[17px] h-[17px] text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>Quota Tracker</span>
+      </button>
+
+      <div class="app-side-label">Account</div>
+
+      <!-- Google Auth Button (moved from header — JS toggles via id) -->
+      <button
+        type="button"
+        id="navAuthBtn"
+        onclick="handleConnectClick()"
+        class="flex items-center gap-1.5 px-3 min-h-[38px] border border-[var(--border-main)] bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] font-semibold transition-all cursor-pointer text-[11px] uppercase tracking-wider w-full"
+        title="Google Account is not connected. Click to connect."
+      >
+        <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+        <span>Connect Google</span>
+      </button>
+
+      <!-- Connected Badge (Owner) -->
+      <div id="navConnectedBadge" class="hidden items-center gap-2 px-3 min-h-[38px] border border-emerald-300 dark:border-emerald-700/60 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 font-semibold text-[11px] uppercase tracking-wider w-full rounded-[10px]">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 dark:text-emerald-400 inline-block shrink-0"></span>
+        <span class="leading-tight">Google Connected</span>
+        <button type="button" onclick="openAuthModal()" class="text-emerald-700 dark:text-emerald-400 hover:text-emerald-950 dark:hover:text-emerald-200 underline ml-auto cursor-pointer font-bold lowercase shrink-0">settings</button>
+      </div>
+
+      <!-- Connected Badge (Editor) -->
+      <div id="navEditorConnectedBadge" class="hidden items-center gap-2 px-3 min-h-[38px] border border-sky-400/60 bg-sky-950/60 text-sky-300 font-semibold text-[11px] uppercase tracking-wider w-full rounded-[10px]">
+        <span class="w-2 h-2 rounded-full bg-sky-400 inline-block animate-pulse"></span>
+        <span id="navEditorEmailLabel" class="truncate">Editor Mode</span>
+        <button type="button" onclick="logoutEditor()" class="text-rose-400 hover:text-rose-300 underline ml-auto cursor-pointer font-bold lowercase">logout</button>
+      </div>
+
+      <!-- Verify Channel Link -->
+      <a
+        href="https://www.youtube.com/verify"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center gap-2.5 px-3 py-2 rounded-[10px] font-semibold text-[12.5px] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--btn-secondary-hover)] transition-colors w-full"
+        title="Verify your YouTube Channel to enable uploads longer than 15 minutes (youtube.com/verify)"
+      >
+        <svg class="w-[17px] h-[17px] text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>Verify 15m+ uploads</span>
+        <svg class="w-3 h-3 ml-auto text-[var(--text-subtle)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer: Utility Toggles (moved from header) -->
+    <div class="p-3 border-t border-[var(--border-main)] flex items-center gap-2 shrink-0">
+      <button
+        type="button"
+        id="soundToggleBtn"
+        onclick="toggleNotificationSound()"
+        class="flex-1 flex items-center justify-center gap-1.5 h-9 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] transition-all cursor-pointer text-[10px] font-mono-code font-bold"
+        title="Upload Audio Alerts & Chime (Click to Mute / Unmute)"
+      >
+        <span id="soundIcon">🔔</span>
+      </button>
+
+      <button
+        type="button"
+        id="headerThemeBtn"
+        onclick="toggleAppTheme()"
+        class="flex-1 flex items-center justify-center gap-1.5 h-9 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] transition-all cursor-pointer text-[10px] font-mono-code font-bold"
+        title="Toggle Light / Dark Theme (Press 'D')"
+      >
+        <span id="headerThemeIcon">☀️</span>
+        <span>Theme</span>
+      </button>
+
+      <button
+        type="button"
+        onclick="openInfoModal('guide')"
+        class="flex-1 flex items-center justify-center gap-1.5 h-9 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] transition-all cursor-pointer text-[10px] font-mono-code font-bold"
+        title="How to Use & Documentation Guide"
+      >
+        <span class="font-serif-editorial italic font-bold text-[12px]">i</span>
+        <span>Guide</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile drawer backdrop -->
+  <div id="sidebarBackdrop" onclick="toggleSidebarDrawer(false)" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+
+  <!-- 1. Slim Studio Top Bar -->
+  <header class="w-full border-b border-[var(--border-main)] px-3 sm:px-6 py-2.5 sm:py-3 bg-[var(--bg-header)] backdrop-blur-xl sticky top-0 z-30">
+    <div class="w-full max-w-[1536px] mx-auto flex items-center justify-between gap-3">
+
+      <!-- Left: Mobile hamburger + Mobile brand + Desktop view title -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <button
+          type="button"
+          id="sidebarToggleBtn"
+          onclick="toggleSidebar()"
+          class="w-8 h-8 flex items-center justify-center border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] rounded-[9px] cursor-pointer transition-colors shrink-0"
+          title="Hide / Show Menu"
+        >
+          <svg id="sidebarToggleIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+
+        <!-- Mobile brand (sidebar carries brand on desktop) -->
+        <div id="mobileBrand" class="lg:hidden flex items-center gap-2">
+          <div class="w-7 h-7 rounded-[9px] bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center font-bold shadow-xs">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+            </svg>
+          </div>
+          <div class="text-[14px] tracking-tight font-semibold text-[var(--text-main)]">Drive <span class="font-serif-editorial italic font-normal text-[15px] text-[var(--accent-orange)]">to YouTube</span></div>
+        </div>
+
+        <!-- Desktop dynamic view title -->
+        <div class="hidden lg:block min-w-0">
+          <h1 id="headerViewTitle" class="text-[15px] font-bold tracking-tight text-[var(--text-main)] leading-tight truncate">Upload Pipeline</h1>
+          <p class="font-mono-code text-[10px] text-[var(--text-subtle)] leading-tight">Drive → YouTube Cloud Portal</p>
         </div>
       </div>
 
-      <!-- Right Header Actions (Sync YouTube, Google Auth, Verify, SSE) -->
+      <!-- Right Header Status Cluster -->
       <div class="flex items-center gap-2 font-mono-code text-xs">
-        
-        <!-- Top Sync YouTube Button -->
-        <button
-          type="button"
-          onclick="syncYouTubeUploads()"
-          class="flex items-center gap-1.5 px-3 h-8 border border-[var(--border-main)] bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] font-semibold transition-all text-[11px] uppercase tracking-wider cursor-pointer"
-          title="Sync live videos from your YouTube channel"
-        >
-          <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-          </svg>
-          <span>Sync Channel</span>
-        </button>
 
-        <!-- Google Auth Button -->
-        <button
-          type="button"
-          id="navAuthBtn"
-          onclick="handleConnectClick()"
-          class="flex items-center gap-1.5 px-3 h-8 border border-[var(--border-main)] bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] font-semibold transition-all cursor-pointer text-[11px] uppercase tracking-wider"
-          title="Google Account is not connected. Click to connect."
-        >
-          <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
-          <span>Connect Google</span>
-        </button>
-
-        <!-- Manual Upload Direct Button -->
-        <button
-          type="button"
-          onclick="openManualUploadModal()"
-          class="flex items-center gap-1.5 px-3 h-8 bg-[var(--btn-primary-bg)] hover:opacity-90 text-[var(--btn-primary-text)] font-bold transition-all text-[11px] uppercase tracking-wider cursor-pointer shadow-xs"
-          title="Directly upload a video file from your computer / device to YouTube"
-        >
-          <span>+ Manual Upload</span>
-        </button>
-
-        <!-- Connected Badge (Owner) -->
-        <div id="navConnectedBadge" class="hidden items-center gap-2 px-3 h-8 border border-emerald-300 dark:border-emerald-700/60 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 font-semibold text-[11px] uppercase tracking-wider">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 inline-block"></span>
-          <span>Google Connected</span>
-          <button type="button" onclick="openAuthModal()" class="text-emerald-700 dark:text-emerald-400 hover:text-emerald-950 dark:hover:text-emerald-200 underline ml-1 cursor-pointer font-bold lowercase">settings</button>
-        </div>
-
-        <!-- Connected Badge (Editor) -->
-        <div id="navEditorConnectedBadge" class="hidden items-center gap-2 px-3 h-8 border border-sky-400/60 bg-sky-950/60 text-sky-300 font-semibold text-[11px] uppercase tracking-wider">
-          <span class="w-2 h-2 rounded-full bg-sky-400 inline-block animate-pulse"></span>
-          <span id="navEditorEmailLabel">Editor Mode</span>
-          <button type="button" onclick="logoutEditor()" class="text-rose-400 hover:text-rose-300 underline ml-1 cursor-pointer font-bold lowercase">logout</button>
-        </div>
-
-        <!-- Verify Channel Link (Compact) -->
-        <a
-          href="https://www.youtube.com/verify"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="hidden sm:flex items-center gap-1 px-2.5 h-8 border border-[var(--border-main)] bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold transition-all text-[10px] uppercase tracking-wider whitespace-nowrap"
-          title="Verify your YouTube Channel to enable uploads longer than 15 minutes (youtube.com/verify)"
-        >
-          <span>✓ Verify 15m+ ↗</span>
-        </a>
-
-        <!-- Real-Time API Quota Health Meter Pill (Compact) -->
+        <!-- Real-Time API Quota Health Meter Pill -->
         <button
           type="button"
           id="navQuotaMeterBtn"
           onclick="openQuotaTrackerModal()"
-          class="flex items-center gap-1.5 px-2 h-8 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] font-mono-code text-[10px] font-bold transition-all cursor-pointer shadow-2xs"
+          class="flex items-center gap-1.5 px-2 h-8 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] font-mono-code text-[10px] font-bold transition-all cursor-pointer"
           title="Click to view Live API Quota, Time Estimates & Health Breakdown"
         >
           <span id="quotaPulseDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
@@ -339,49 +971,17 @@
           <span id="navQuotaPctText" class="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold">(0%)</span>
 
           <!-- Mini Visual Progress Bar -->
-          <div class="w-8 h-1 bg-[var(--border-main)] overflow-hidden hidden sm:block">
-            <div id="navQuotaMiniBar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+          <div class="w-8 h-1 bg-[var(--border-main)] overflow-hidden hidden sm:block rounded-full">
+            <div id="navQuotaMiniBar" class="h-full bg-emerald-500 transition-all duration-500 rounded-full" style="width: 0%"></div>
           </div>
 
           <span id="navQuotaCountdownBadge" class="text-[9px] text-[var(--text-subtle)] font-normal hidden lg:inline-block">⏱️ --:--</span>
         </button>
 
-        <!-- Notification Audio Chime & Mute Toggle -->
-        <button
-          type="button"
-          id="soundToggleBtn"
-          onclick="toggleNotificationSound()"
-          class="flex items-center justify-center w-8 h-8 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] transition-all cursor-pointer shadow-2xs text-xs"
-          title="Upload Audio Alerts & Chime (Click to Mute / Unmute)"
-        >
-          <span id="soundIcon">🔔</span>
-        </button>
-
-        <!-- Theme Toggle Button (In Header) -->
-        <button
-          type="button"
-          id="headerThemeBtn"
-          onclick="toggleAppTheme()"
-          class="flex items-center justify-center w-8 h-8 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] transition-all cursor-pointer shadow-2xs text-xs"
-          title="Toggle Light / Dark Theme (Press 'D')"
-        >
-          <span id="headerThemeIcon">☀️</span>
-        </button>
-
-        <!-- Documentation & Guide Button (In Header) -->
-        <button
-          type="button"
-          onclick="openInfoModal('guide')"
-          class="flex items-center justify-center w-8 h-8 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] transition-all cursor-pointer shadow-2xs text-xs font-serif-editorial italic font-bold"
-          title="How to Use & Documentation Guide"
-        >
-          i
-        </button>
-
-        <!-- SSE Status: Pure compact indicator dot (No text) -->
+        <!-- SSE Status: compact indicator dot -->
         <div
           id="connectionBadge"
-          class="flex items-center justify-center w-8 h-8 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] cursor-pointer transition-all"
+          class="flex items-center justify-center w-8 h-8 border border-[var(--border-main)] bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] cursor-pointer transition-all rounded-[9px]"
           title="Pipeline Status: Live & Connected"
         >
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse shadow-xs"></span>
@@ -420,10 +1020,50 @@
       </div>
     </div>
 
-    <!-- 2. Clean High-Density Command Studio Card (Hero Banner Removed) -->
-    <div class="p-4 sm:p-5 bg-[var(--bg-card)] border border-[var(--border-main)] shadow-xs space-y-3.5">
+    <!-- ═══ UPLOAD VIEW ═══ -->
+    <section id="view-upload" class="space-y-4">
 
-      <!-- Multi-Folder Drive URL Input -->
+    <!-- 2. Upload Pipeline — Full-Page Studio -->
+    <div id="uploadStudioCard" class="p-4 sm:p-5 bg-[var(--bg-card)] border border-[var(--border-main)] shadow-xs space-y-4">
+
+      <!-- Source Picker: Google Drive ⇄ This Device -->
+      <div class="space-y-3">
+        <div>
+          <div class="font-mono-code text-[10px] uppercase tracking-widest text-[var(--text-muted)]">Upload Source</div>
+          <div class="text-[11px] text-[var(--text-subtle)] font-mono-code hidden sm:block">pick where your videos come from — the pipeline adapts automatically</div>
+        </div>
+        <div id="uploadModeToggle" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button type="button" id="modeDriveBtn" onclick="switchUploadMode('drive')" class="source-tile active" title="Scan & upload videos from Google Drive folders">
+            <span class="source-tile-icon chip-blue">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </span>
+            <span class="source-tile-body">
+              <span class="source-tile-title">Google Drive</span>
+              <span class="source-tile-desc">Scan folders &amp; bulk upload — multi-folder queue supported</span>
+            </span>
+            <span class="source-tile-check">✓</span>
+          </button>
+          <button type="button" id="modeManualBtn" onclick="switchUploadMode('manual')" class="source-tile" title="Upload a video file directly from this device">
+            <span class="source-tile-icon chip-green">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6h13M9 11l4-4m-4 4l4 4M5 3h11a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" transform="rotate(90 12 12)"/></svg>
+            </span>
+            <span class="source-tile-body">
+              <span class="source-tile-title">This Device</span>
+              <span class="source-tile-desc">Pick a file from your computer — instant thumbnail studio included</span>
+            </span>
+            <span class="source-tile-check">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="mode-drive" class="space-y-4">
+
+      <!-- STEP 1 · Multi-Folder Drive URL Input -->
+      <div class="flex items-center gap-2 font-mono-code text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+        <span class="w-4 h-4 rounded-md bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center text-[9px] shrink-0">1</span>
+        <span>Source — Google Drive Folders</span>
+        <span class="hidden sm:block flex-1 h-px bg-[var(--border-main)]"></span>
+      </div>
       <div class="space-y-1.5">
         <div class="flex items-center justify-between font-mono-code text-[10px]">
           <label class="font-bold uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
@@ -435,7 +1075,7 @@
               type="button"
               id="multiFolderToggleBtn"
               onclick="toggleMultiFolderMode()"
-              class="text-orange-500 hover:underline font-bold cursor-pointer"
+              class="text-blue-600 dark:text-blue-400 hover:underline font-bold cursor-pointer"
             >
               + Multi-Folder Queue (3-4 Folders)
             </button>
@@ -463,15 +1103,22 @@
         </div>
         <p class="font-mono-code text-[10px] text-[var(--text-subtle)] pt-0.5 flex items-center justify-between">
           <span>paste 1 or multiple drive folder links (one per line or comma-separated) • auto-recursive scan</span>
-          <span id="multiFolderHint" class="hidden text-orange-500 font-semibold">Multi-Folder Queue Active</span>
+          <span id="multiFolderHint" class="hidden text-blue-600 dark:text-blue-400 font-semibold">Multi-Folder Queue Active</span>
         </p>
       </div>
 
+      <!-- STEP 2 · Configure & Launch -->
+      <div class="flex items-center gap-2 font-mono-code text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] pt-1">
+        <span class="w-4 h-4 rounded-md bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center text-[9px] shrink-0">2</span>
+        <span>Configure</span>
+        <span class="hidden sm:block flex-1 h-px bg-[var(--border-main)]"></span>
+      </div>
+
       <!-- Flat Row: Playlist Name + Visibility + Date Filters + Action Buttons -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-1 items-end">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
         
-        <!-- Playlist Name (Col 3) -->
-        <div class="md:col-span-3 space-y-1">
+        <!-- Playlist Name -->
+        <div class="md:col-span-4 space-y-1">
           <label class="block font-mono-code text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
             PLAYLIST NAME <span class="font-normal lowercase">(optional)</span>
           </label>
@@ -483,8 +1130,8 @@
           />
         </div>
 
-        <!-- Visibility & Release (Col 3) -->
-        <div class="md:col-span-3 space-y-1">
+        <!-- Visibility & Release -->
+        <div class="md:col-span-4 space-y-1">
           <div class="flex items-center justify-between font-mono-code text-[10px]">
             <label class="font-bold uppercase tracking-wider text-[var(--text-muted)]">VISIBILITY &amp; RELEASE</label>
             <span class="text-emerald-500 font-bold text-[9px]" id="privacyStatusBadge">Unlisted</span>
@@ -509,19 +1156,10 @@
           </div>
         </div>
 
-        <!-- Scan Date Filter Presets (Col 3) -->
-        <div class="md:col-span-3 space-y-1">
-          <div class="flex items-center justify-between font-mono-code text-[10px]">
+        <!-- Scan Date Filter Presets -->
+        <div class="md:col-span-4 space-y-1">
+          <div class="flex items-center font-mono-code text-[10px]">
             <label class="font-bold uppercase tracking-wider text-[var(--text-muted)]">SCAN DATE FILTER</label>
-            <div class="flex items-center gap-1 text-[10px]">
-              <button type="button" onclick="setScanDatePreset('today')" class="text-orange-500 hover:underline font-bold cursor-pointer">Today</button>
-              <span class="text-[var(--border-main)]">|</span>
-              <button type="button" onclick="setScanDatePreset('yesterday')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer">Yest</button>
-              <span class="text-[var(--border-main)]">|</span>
-              <button type="button" onclick="setScanDatePreset('all')" class="text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer">All</button>
-              <span class="text-[var(--border-main)]">|</span>
-              <button type="button" onclick="setScanDatePreset('clear')" class="text-rose-500 hover:underline cursor-pointer">Clear</button>
-            </div>
           </div>
           <!-- Hidden real inputs for backward compat (all existing JS reads .value from these) -->
           <input type="hidden" id="startDateInput" />
@@ -532,7 +1170,7 @@
               type="button"
               onclick="openScanCalendar('start', event)"
               id="scanStartDateBtn"
-              class="w-1/2 h-9 px-2 om-box-input text-xs text-[var(--text-main)] text-left cursor-pointer flex items-center justify-between"
+              class="flex-1 h-9 px-2 om-box-input text-xs text-[var(--text-main)] text-left cursor-pointer flex items-center justify-between"
             >
               <span id="scanStartDateDisplay" class="text-[var(--text-subtle)]">Start Date</span>
               <svg class="w-3 h-3 text-[var(--text-muted)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -542,7 +1180,7 @@
               type="button"
               onclick="openScanCalendar('end', event)"
               id="scanEndDateBtn"
-              class="w-1/2 h-9 px-2 om-box-input text-xs text-[var(--text-main)] text-left cursor-pointer flex items-center justify-between"
+              class="flex-1 h-9 px-2 om-box-input text-xs text-[var(--text-main)] text-left cursor-pointer flex items-center justify-between"
             >
               <span id="scanEndDateDisplay" class="text-[var(--text-subtle)]">End Date</span>
               <svg class="w-3 h-3 text-[var(--text-muted)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -569,28 +1207,42 @@
               </div>
             </div>
           </div>
+          <div class="flex items-center gap-1.5 pt-0.5">
+            <button type="button" onclick="setScanDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-[var(--bg-subcard)] text-[var(--text-main)] hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] font-bold text-[10px] cursor-pointer transition-colors border-0">Today</button>
+            <button type="button" onclick="setScanDatePreset('yesterday')" class="px-2.5 py-1 rounded-lg bg-[var(--bg-subcard)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold text-[10px] cursor-pointer transition-colors border-0">Yest</button>
+            <button type="button" onclick="setScanDatePreset('all')" class="px-2.5 py-1 rounded-lg bg-[var(--bg-subcard)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold text-[10px] cursor-pointer transition-colors border-0">All</button>
+            <button type="button" onclick="setScanDatePreset('clear')" class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 font-bold text-[10px] cursor-pointer transition-colors border-0">Clear</button>
+          </div>
         </div>
 
-        <!-- Flat Action Buttons (Col 3) -->
-        <div class="md:col-span-3 flex items-center gap-2">
-          
-          <!-- Scan & Select Button -->
+      </div>
+
+      <!-- STEP 3 · Launch Bar -->
+      <div id="launchBar" class="rounded-2xl border border-[var(--border-main)] p-4 sm:px-5 flex items-center justify-between gap-3 flex-wrap" style="background: linear-gradient(135deg, rgba(249,177,122,0.12), rgba(103,111,157,0.07));">
+        <div class="flex items-center gap-3">
+          <span class="w-6 h-6 rounded-lg bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center text-[11px] font-bold shrink-0">3</span>
+          <div>
+            <div class="font-bold text-[13.5px] text-[var(--text-main)] leading-tight">Ready to launch</div>
+            <div class="font-mono-code text-[10px] text-[var(--text-muted)] leading-tight">scan first to cherry-pick videos, or push the entire folder</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
           <button
             type="button"
             id="scanPreviewBtn"
             onclick="openScanReviewModal()"
-            class="flex-1 h-9 bg-[var(--btn-primary-bg)] hover:opacity-90 text-[var(--btn-primary-text)] font-mono-code text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            class="h-10 px-5 bg-[var(--btn-primary-bg)] hover:opacity-90 text-[var(--btn-primary-text)] font-mono-code text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             title="Scan folder to select specific videos before uploading"
           >
             <span>⚡ SCAN &amp; SELECT →</span>
           </button>
 
-          <!-- Direct Upload Button -->
           <button
             type="button"
             id="startButton"
             onclick="startProcessing()"
-            class="h-9 px-3.5 bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] border border-[var(--border-main)] font-mono-code text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center cursor-pointer"
+            class="h-10 px-5 bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] border border-[var(--border-main)] font-mono-code text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center cursor-pointer"
             title="Directly upload entire folder"
           >
             <span id="buttonText">UPLOAD ALL</span>
@@ -600,30 +1252,36 @@
             type="button"
             id="stopProcessBtn"
             onclick="cancelProcessingJob()"
-            class="hidden h-9 px-3 bg-rose-700 hover:bg-rose-800 text-white font-mono-code text-xs font-bold uppercase tracking-wider cursor-pointer"
+            class="hidden h-10 px-4 bg-rose-700 hover:bg-rose-800 text-white font-mono-code text-xs font-bold uppercase tracking-wider cursor-pointer"
           >
             STOP
           </button>
         </div>
       </div>
+      </div><!-- /mode-drive -->
+
+      <!-- This-Device panel — manual upload content is adopted here at runtime from the legacy modal shell -->
+      <div id="mode-manual" class="hidden"></div>
     </div>
 
     <!-- Hidden radio for processingMode compatibility -->
     <input type="radio" name="processingMode" value="youtube" checked class="hidden" />
+    </section>
+
+    <!-- ═══ LIBRARY VIEW ═══ -->
+    <section id="view-library" class="space-y-4 hidden">
 
     <!-- 3. Library & Dashboard Table Section Card -->
-    <div class="p-4 sm:p-5 bg-[var(--bg-card)] border border-[var(--border-main)] shadow-xs space-y-3.5">
-      
-      <!-- Section Header with Date Range Filter -->
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-        <div class="space-y-0.5">
-          <div class="font-mono-code text-[10px] uppercase tracking-widest text-[var(--text-muted)]">LIBRARY</div>
-          <h3 class="text-lg sm:text-xl font-bold font-serif-editorial text-[var(--text-main)]">Uploaded videos &amp; stream queue</h3>
-        </div>
+    <div id="libraryCard" class="p-4 sm:p-5 bg-[var(--bg-card)] border border-[var(--border-main)] shadow-xs space-y-3.5">
 
-        <!-- Date Range Filter -->
+      <!-- Section header (Inkwise-style title + count) -->
+      <div class="flex items-center gap-2.5 pt-0.5">
+        <h2 class="text-[15px] font-bold tracking-tight text-[var(--text-main)] leading-none">All Videos</h2>
+        <span id="libHeaderCount" class="font-mono-code text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--btn-secondary-hover)] text-[var(--text-muted)]">0</span>
+      </div>
+
+      <!-- Date Range Filter (moved into toolbar row) -->
         <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold text-[var(--text-muted)] whitespace-nowrap font-mono-code">Pick date range:</span>
           
           <div class="relative" id="calendarWrapper">
             <button
@@ -664,7 +1322,6 @@
             </div>
           </div>
         </div>
-      </div>
 
       <!-- Stats Filter Bar (Total, Uploaded, In Progress, Source Tabs) -->
       <div id="filterStatsBar" class="flex items-center justify-between gap-2 flex-wrap font-mono-code text-xs border border-[var(--border-main)] bg-[var(--bg-card)] p-2 relative z-30 overflow-visible">
@@ -740,6 +1397,15 @@
         </div>
 
         <div class="flex items-center gap-2 shrink-0 relative z-40 overflow-visible">
+          <!-- List ⇄ Grid view toggle -->
+          <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-[var(--bg-main)] border border-[var(--border-main)] mr-1">
+            <button type="button" id="libViewListBtn" onclick="switchLibraryView('list')" class="lib-view-btn active" title="List view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <button type="button" id="libViewGridBtn" onclick="switchLibraryView('grid')" class="lib-view-btn" title="Grid view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path stroke-linejoin="round" d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+            </button>
+          </div>
           <!-- Segmented Source Filters -->
           <div class="flex items-center border border-[var(--border-main)] bg-[var(--bg-card)] p-0.5 text-[10px] font-mono-code font-bold uppercase shrink-0">
             <button type="button" id="sourceFilterAll" onclick="setSourceFilter('all')" class="px-2 py-0.5 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] cursor-pointer">All (<span id="sourceCountAll">0</span>)</button>
@@ -862,12 +1528,13 @@
           id="tableSearchInput"
           placeholder="search videos by title, batch, or subject..."
           oninput="handleTableSearch()"
-          class="w-full py-1.5 font-mono-code text-xs text-[var(--text-main)] bg-transparent border-b border-[var(--border-main)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:border-b-2 focus:border-[var(--btn-primary-bg)]"
+          class="w-full py-1.5 pr-10 font-mono-code text-xs text-[var(--text-main)] bg-transparent border-b border-[var(--border-main)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:border-b-2 focus:border-[var(--btn-primary-bg)]"
         />
+        <span class="search-kbd">/</span>
       </div>
 
-      <!-- Main Video Data Table (Flat, Sharp Borders) -->
-      <div class="border border-[var(--border-main)] bg-[var(--bg-card)] overflow-x-auto">
+      <!-- List View -->
+      <div id="listViewWrap" class="border border-[var(--border-main)] bg-[var(--bg-card)] overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs min-w-[700px]">
           <thead>
             <tr class="border-b border-[var(--border-main)] bg-[var(--bg-subcard)] font-mono-code text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -881,8 +1548,14 @@
           </thead>
           <tbody id="trackingTableBody" class="divide-y divide-[var(--border-main)]">
             <tr id="emptyRow" class="text-[var(--text-muted)]">
-              <td colspan="6" class="py-14 text-center font-mono-code text-xs">
-                no videos in queue. paste a google drive folder link above and click scan &amp; select.
+              <td colspan="6" class="py-14 text-center">
+                <div class="flex flex-col items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl border border-[var(--border-main)] bg-[var(--bg-subcard)] flex items-center justify-center">
+                    <svg class="w-5 h-5 text-[var(--text-subtle)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-3.5-2-3.5 2-3.5-2L5 21V5zM9 7h6M9 11h6"/></svg>
+                  </div>
+                  <div class="font-mono-code text-xs">no videos in queue yet</div>
+                  <div class="font-mono-code text-[10px] text-[var(--text-subtle)]">paste a google drive folder link above &amp; click <span class="text-[var(--accent-orange)] font-bold">scan &amp; select</span></div>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -918,15 +1591,47 @@
         </div>
       </div>
 
-      <!-- Full-Width Flat CLEAR ALL button -->
-      <button
-        type="button"
-        onclick="clearCompletedVideos()"
-        class="w-full py-2.5 border border-[var(--border-main)] hover:border-[var(--btn-primary-bg)] bg-[var(--bg-card)] hover:bg-[var(--bg-subcard)] text-[var(--text-muted)] hover:text-[var(--text-main)] font-mono-code text-[11px] font-bold uppercase tracking-widest transition-all cursor-pointer text-center"
-      >
-        CLEAR ALL
-      </button>
-    </div>
+      <!-- Grid View (thumbnail cards) -->
+      <div id="gridViewWrap" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+      </div>
+    </section>
+
+    <!-- ThumbCraft Studio (embedded — no need to leave the app) -->
+    <section id="view-thumbcraft" class="space-y-4 hidden">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 class="text-[15px] font-bold tracking-tight text-[var(--text-main)] leading-none">ThumbCraft Studio</h2>
+          <p class="text-[11.5px] text-[var(--text-muted)] mt-1.5">Design thumbnails right here — download the finished design and attach it to your video.</p>
+        </div>
+        <a href="https://aniketpw.github.io/thumbcraft/" target="_blank" rel="noopener noreferrer" class="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--accent-orange)] underline decoration-dotted underline-offset-2 cursor-pointer transition-colors" title="Open in a separate tab instead">Open in new tab ↗</a>
+      </div>
+      <div class="border border-[var(--border-main)] rounded-xl overflow-hidden bg-white shadow-xs">
+        <iframe id="thumbcraftFrame" data-src="https://aniketpw.github.io/thumbcraft/" class="w-full block" style="height: calc(100vh - 175px); min-height: 560px; border: 0;" title="ThumbCraft Studio"></iframe>
+      </div>
+    </section>
+
+    <!-- View persistence: apply the saved view BEFORE first paint (no flash,
+         works even if the studio script fails to boot) -->
+    <script>
+      (function () {
+        try {
+          var want = localStorage.getItem('om_view');
+          if (want !== 'library' && want !== 'thumbcraft') want = 'upload';
+          window.__omViewIntent = want;
+          var viewIds = ['upload', 'library', 'thumbcraft'];
+          var navIds = { upload: 'navViewUpload', library: 'navViewLibrary', thumbcraft: 'navViewThumb' };
+          var titles = { upload: 'Upload Pipeline', library: 'Video Library', thumbcraft: 'ThumbCraft Studio' };
+          viewIds.forEach(function (id) {
+            var el = document.getElementById('view-' + id);
+            if (el) el.classList.toggle('hidden', id !== want);
+            var nav = document.getElementById(navIds[id]);
+            if (nav) nav.classList.toggle('active', id === want);
+          });
+          var hu = document.getElementById('headerViewTitle');
+          if (hu) hu.textContent = titles[want];
+        } catch (e) {}
+      })();
+    </script>
   </main>
 
   <!-- 4. Scan & File Review Selection Modal (Select Files & Check Duplicates) -->
@@ -1473,6 +2178,9 @@
 
       <!-- LANDING VIEW: Choose Path -->
       <div id="authLanding" class="p-5 space-y-3">
+        <div id="authCredBrokenBanner" class="hidden p-3 bg-rose-500/10 border border-rose-500/50 rounded-md text-[11px] text-rose-600 dark:text-rose-300 font-semibold">
+          ⚠️ Your saved Google connection is broken — the OAuth client it was created with was deleted on Google Cloud. Connect again below to restore permanent library sync &amp; uploads.
+        </div>
 
         <!-- Already Have Client ID — Quick Connect -->
         <div class="p-4 bg-[var(--bg-subcard)] border-2 border-[var(--border-main)] hover:bg-[var(--btn-secondary-hover)] cursor-pointer transition-colors" onclick="showAuthQuickConnect()">
@@ -1932,9 +2640,14 @@
         <div class="bg-[var(--bg-subcard)] p-4 border border-[var(--border-main)] space-y-3">
           <div class="flex items-center justify-between">
             <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-main)]">Instant Thumbnail Studio</label>
-            <button type="button" onclick="generateManualSmartThumb()" class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/60 text-amber-700 dark:text-amber-300 font-bold uppercase text-[10px] hover:bg-amber-500/20 cursor-pointer">
-              ⚡ 1-Click Smart Canvas
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="switchAppView('thumbcraft')" class="px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--text-muted)] hover:text-[var(--accent-orange)] underline decoration-dotted underline-offset-2 cursor-pointer transition-colors" title="Open the built-in ThumbCraft Studio">
+                ThumbCraft Studio
+              </button>
+              <button type="button" onclick="generateManualSmartThumb()" class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/60 text-amber-700 dark:text-amber-300 font-bold uppercase text-[10px] hover:bg-amber-500/20 cursor-pointer">
+                ⚡ 1-Click Smart Canvas
+              </button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -2563,18 +3276,21 @@
     function formatFileDateTime(file) {
       if (!file) return { date: formatDateToDMY(new Date()), time: '' };
       let dateObj = null;
+      let fromUpload = false;
 
       const name = (file.name || file.customTitle || file.originalName || '');
       const matchFull = name.match(/(\d{4})[_-](\d{2})[_-](\d{2})[_\sT]+(\d{2})[_-](\d{2})(?:[_-](\d{2}))?/);
 
-      // Priority 1: Exact lecture timestamp in recording filename (e.g. 2026-09-02 17-59-11)
-      if (matchFull) {
+      // Priority 1: actual upload / publish timestamp (uploadedAt / createdTime / publishedAt)
+      const created = file.uploadedAt ? new Date(file.uploadedAt)
+                    : file.createdTime ? new Date(file.createdTime) : null;
+      if (created && !isNaN(created.getTime())) {
+        dateObj = created;
+        fromUpload = true;
+      } else if (matchFull) {
+        // Priority 2: lecture timestamp in recording filename (e.g. 2026-09-02 17-59-11)
         const [, y, m, d, hh, mm, ss] = matchFull;
         dateObj = new Date(`${y}-${m}-${d}T${hh}:${mm}:${ss || '00'}`);
-      } else if (file.createdTime) {
-        // Priority 2: Upload time
-        const d = new Date(file.createdTime);
-        if (!isNaN(d.getTime())) dateObj = d;
       } else {
         const ymd = getFileYMD(file);
         if (ymd) {
@@ -2590,18 +3306,18 @@
       const dmy = dateObj.toLocaleDateString('en-GB'); // DD/MM/YYYY
       let timeStr = '';
 
-      if (matchFull) {
-        const [, , , hh, mm] = matchFull;
-        const hour = parseInt(hh, 10);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const hour12 = hour % 12 || 12;
-        timeStr = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
-      } else if (file.createdTime) {
+      if (fromUpload) {
         const h = dateObj.getHours();
         const m = dateObj.getMinutes();
         if (h !== 0 || m !== 0) {
           timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         }
+      } else if (matchFull) {
+        const [, , , hh, mm] = matchFull;
+        const hour = parseInt(hh, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        timeStr = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
       }
 
       return { date: dmy, time: timeStr };
@@ -2610,15 +3326,21 @@
 
     function getFileYMD(file) {
       if (!file) return getTodayYMD();
+      // Priority 1: actual upload / publish timestamp
+      if (file.uploadedAt) {
+        const d = new Date(file.uploadedAt);
+        if (!isNaN(d.getTime())) return formatDateToYMD(d);
+      }
+      if (file.createdTime) {
+        const d = new Date(file.createdTime);
+        if (!isNaN(d.getTime())) return formatDateToYMD(d);
+      }
+      // Priority 2: date baked into the recording filename
       const name = file.name || file.originalName || file.customTitle || '';
       const ymdMatch = name.match(/(20\d{2})[-_](\d{2})[-_](\d{2})/);
       if (ymdMatch) return `${ymdMatch[1]}-${ymdMatch[2]}-${ymdMatch[3]}`;
       const dmyMatch = name.match(/(\d{2})[-_](\d{2})[-_](20\d{2})/);
       if (dmyMatch) return `${dmyMatch[3]}-${dmyMatch[2]}-${dmyMatch[1]}`;
-      if (file.createdTime) {
-        const d = new Date(file.createdTime);
-        if (!isNaN(d.getTime())) return formatDateToYMD(d);
-      }
       return getTodayYMD();
     }
 
@@ -3293,7 +4015,7 @@
     }
 
     window.retryAllPendingQueue = async function() {
-      if (!window.isAuthenticated || !window.gAccessToken) {
+      if (!window.isAuthenticated || (!window.gAccessToken && !window.serverAuthActive)) {
         showToast('Please connect your Google Account first.', 'error');
         handleConnectClick();
         return;
@@ -3305,7 +4027,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${window.gAccessToken}`
+            ...(window.gAccessToken ? { 'Authorization': `Bearer ${window.gAccessToken}` } : {})
           }
         });
         const data = await res.json();
@@ -3825,6 +4547,9 @@
 
       if (originDisplay) originDisplay.textContent = currentOrigin;
       if (wizOrigin) wizOrigin.textContent = currentOrigin;
+
+      const brokenBanner = document.getElementById('authCredBrokenBanner');
+      if (brokenBanner) brokenBanner.classList.toggle('hidden', !window.serverCredentialError);
 
       loadClientIds();
       loadServerSettings();
@@ -4624,6 +5349,13 @@
         const res = await fetch('/api/auth/status');
         const data = await res.json();
         if (data.success && data.connected && data.hasRefreshToken) {
+          // A stored credential that can no longer mint tokens (e.g. the OAuth
+          // client was deleted) must NOT be presented as a working connection.
+          if (data.credentialHealthy === false) {
+            window.serverCredentialError = data.credentialError || 'refresh_failed';
+            checkAuthStatus();
+            return false;
+          }
           window.isAuthenticated = true;
           window.serverAuthActive = true;
           checkAuthStatus();
@@ -4881,7 +5613,9 @@
     };
 
     window.syncYouTubeUploads = async function(silent = false) {
-      if (!window.gAccessToken) {
+      // Server-side permanent auth (refresh token) is enough — the sync endpoint
+      // uses the owner's stored credentials when no client access token exists.
+      if (!window.gAccessToken && !window.serverAuthActive) {
         if (!silent) {
           showToast('Please connect your Google Account first.', 'info');
           openAuthModal();
@@ -4896,7 +5630,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${window.gAccessToken}`
+            ...(window.gAccessToken ? { 'Authorization': `Bearer ${window.gAccessToken}` } : {})
           }
         });
         const data = await res.json();
@@ -4934,7 +5668,7 @@
     // Scan & File Selection / Review Modal Engine
     // ==========================================
     window.openScanReviewModal = async function() {
-      if (!window.isAuthenticated || !window.gAccessToken) {
+      if (!window.isAuthenticated || (!window.gAccessToken && !window.serverAuthActive)) {
         showToast('Please connect your Google Account first.', 'error');
         handleConnectClick();
         return;
@@ -5746,7 +6480,7 @@
         return;
       }
 
-      if (!window.gAccessToken) {
+      if (!window.gAccessToken && !window.serverAuthActive) {
         showToast('Please connect your Google Account first.', 'info');
         openAuthModal();
         return;
@@ -5794,7 +6528,7 @@
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', streamUrl, true);
-        xhr.setRequestHeader('Authorization', `Bearer ${window.gAccessToken}`);
+        if (window.gAccessToken) xhr.setRequestHeader('Authorization', `Bearer ${window.gAccessToken}`);
         xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 
         const startTime = Date.now();
@@ -5831,7 +6565,7 @@
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${window.gAccessToken}`
+                      ...(window.gAccessToken ? { 'Authorization': `Bearer ${window.gAccessToken}` } : {})
                     },
                     body: JSON.stringify({
                       videoId,
@@ -6943,7 +7677,7 @@
       const ytId = (typeof extractYouTubeVideoId === 'function') ? extractYouTubeVideoId(file) : (file.videoId || null);
       const isYt = (typeof isYouTubeVideo === 'function') ? isYouTubeVideo(file) : !!ytId;
 
-      // 1. Agar pehle se thumbnail lagaya hua hai -> WAHI RAKHO! Kabhi overwrite mat karo!
+      // 1. If a thumbnail is already applied -> KEEP IT! Never overwrite.
       if (file.hasCustomThumbnail || file.thumbnailApplied) {
         return file.thumbnailUrl || (isYt && ytId ? `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg` : '');
       }
@@ -6951,7 +7685,7 @@
         return file.thumbnailUrl;
       }
 
-      // 2. Agar memory cache me pehle se hai
+      // 2. Already present in memory cache
       if (window.tableThumbCache[file.id]) {
         return window.tableThumbCache[file.id];
       }
@@ -6960,7 +7694,7 @@
         ? `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg` 
         : (file.thumbnailUrl || '/assets/thumbcraft_template.png');
 
-      // Sirf unhi videos ke liye official ThumbCraft generate karo jinpe abhi tak koi thumbnail nahi lagaya gaya!
+      // Only generate official ThumbCraft thumbnails for videos that have no thumbnail applied yet.
       setTimeout(async () => {
         try {
           const headline = (subName || 'LECTURE').toUpperCase();
@@ -7256,10 +7990,12 @@
 
     window.copyToClipboard = function(text, label = 'Link') {
       if (!text) return;
+      var short = String(text);
+      if (short.length > 64) short = short.slice(0, 64) + '…';
       navigator.clipboard.writeText(text).then(() => {
-        showToast(`✔ Copied: ${text}`, 'success');
+        showToast(`✔ ${label} copied — ${short}`, 'success');
       }).catch(() => {
-        showToast('Failed to copy', 'error');
+        showToast(`Failed to copy ${label}`, 'error');
       });
     };
 
@@ -7267,15 +8003,18 @@
       if (!trackingTableBody) return;
 
       if (!window.isAuthenticated) {
+        const credBroken = !!window.serverCredentialError;
         trackingTableBody.innerHTML = `
           <tr id="authGateRow">
             <td colspan="6" class="py-14 text-center">
               <div class="max-w-md mx-auto space-y-3 font-mono-code">
-                <div class="text-3xl">🔒</div>
-                <h4 class="font-bold text-xs uppercase tracking-widest text-[var(--text-main)]">Google Account Not Connected</h4>
-                <p class="text-[11px] text-[var(--text-muted)]">Connect your Google Account to view your channel uploads, scan Drive folders, and stream lectures.</p>
-                <button type="button" onclick="handleConnectClick()" class="px-4 py-2 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold text-xs uppercase tracking-wider cursor-pointer shadow-sm hover:opacity-90 transition-opacity">
-                  🔴 CONNECT GOOGLE ACCOUNT
+                <div class="text-3xl">${credBroken ? '⚠️' : '🔒'}</div>
+                <h4 class="font-bold text-xs uppercase tracking-widest text-[var(--text-main)]">${credBroken ? 'Google Connection Expired' : 'Google Account Not Connected'}</h4>
+                <p class="text-[11px] text-[var(--text-muted)]">${credBroken
+                  ? 'The saved Google credential is no longer accepted (the OAuth client it was created with was deleted). Reconnect below to restore your library, sync and uploads.'
+                  : 'Connect your Google Account to view your channel uploads, scan Drive folders, and stream lectures.'}</p>
+                <button type="button" onclick="${credBroken ? 'openAuthModal()' : 'handleConnectClick()'}" class="px-4 py-2 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold text-xs uppercase tracking-wider cursor-pointer shadow-sm hover:opacity-90 transition-opacity">
+                  ${credBroken ? '🔄 RECONNECT GOOGLE ACCOUNT' : '🔴 CONNECT GOOGLE ACCOUNT'}
                 </button>
               </div>
             </td>
@@ -7287,8 +8026,20 @@
       if (!currentState || !currentState.files || currentState.files.length === 0) {
         trackingTableBody.innerHTML = `
           <tr id="emptyRow" class="text-[#A8A29E]">
-            <td colspan="6" class="py-14 text-center font-mono-code text-xs">
-              no videos in queue. paste a google drive folder link above and click scan &amp; select.
+            <td colspan="6" class="py-14 text-center">
+              <div class="max-w-md mx-auto space-y-3 font-mono-code">
+                <div class="text-3xl">🎬</div>
+                <h4 class="font-bold text-xs uppercase tracking-widest text-[var(--text-main)]">No videos here yet</h4>
+                <p class="text-[11px] text-[var(--text-muted)]">Paste a Google Drive folder link in the Upload Pipeline and hit Scan — or sync your YouTube channel — and your lectures will show up here.</p>
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                  <button type="button" onclick="switchAppView('upload')" class="px-4 py-2 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold text-xs uppercase tracking-wider cursor-pointer shadow-sm hover:opacity-90 transition-opacity">
+                    ⚡ GO TO UPLOAD PIPELINE
+                  </button>
+                  <button type="button" onclick="syncYouTubeUploads()" class="px-4 py-2 border border-[var(--border-main)] bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors">
+                    🔄 SYNC CHANNEL
+                  </button>
+                </div>
+              </div>
             </td>
           </tr>
         `;
@@ -7401,12 +8152,16 @@
       }
 
       const totalFiltered = filteredFiles.length;
-      const totalPages = Math.ceil(totalFiltered / TABLE_PAGE_SIZE) || 1;
+      // Grid mode: render ALL matching videos (lazy images load on scroll — infinite feel)
+      const gridAllMode = !!window.__gridAllMode;
+      const pageSize = gridAllMode ? Math.max(totalFiltered, 1) : TABLE_PAGE_SIZE;
+      const totalPages = Math.ceil(totalFiltered / pageSize) || 1;
+      if (gridAllMode) tableCurrentPage = 1;
       if (tableCurrentPage > totalPages) tableCurrentPage = totalPages;
       if (tableCurrentPage < 1) tableCurrentPage = 1;
 
-      const startIndex = (tableCurrentPage - 1) * TABLE_PAGE_SIZE;
-      const endIndex = Math.min(startIndex + TABLE_PAGE_SIZE, totalFiltered);
+      const startIndex = (tableCurrentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalFiltered);
       const pageFiles = filteredFiles.slice(startIndex, endIndex);
 
       // Render Pagination Bar
@@ -7417,7 +8172,7 @@
       const paginationPageNumbers = document.getElementById('paginationPageNumbers');
 
       if (paginationContainer) {
-        if (totalFiltered > TABLE_PAGE_SIZE) {
+        if (!gridAllMode && totalFiltered > TABLE_PAGE_SIZE) {
           paginationContainer.classList.remove('hidden');
           paginationContainer.classList.add('flex');
           if (paginationInfoText) {
@@ -7559,6 +8314,9 @@
             </button>
             <button onclick="openEditModal('${file.id || ytId}')" class="h-6 px-1.5 bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] border border-[var(--border-main)] uppercase font-bold cursor-pointer" title="Edit">
               Edit
+            </button>
+            <button onclick="openCloneModal('${file.id || ytId}', '${escapeHtml(displayTitle).replace(/'/g, '&#39;')}')" class="h-6 px-1.5 bg-[var(--bg-card)] hover:bg-[var(--btn-secondary-hover)] text-[var(--text-main)] border border-[var(--border-main)] uppercase font-bold cursor-pointer" title="Clone to Batches — one upload, multiple batches">
+              ⧉
             </button>
             <button onclick="deleteVideo('${file.id || ytId}')" class="h-6 px-1.5 bg-[var(--bg-card)] hover:bg-rose-500/20 text-rose-500 border border-rose-400 dark:border-rose-900/60 font-bold cursor-pointer" title="Delete">
               ×
@@ -7882,7 +8640,7 @@
     }
 
     async function loadJobStatus() {
-      if (!window.isAuthenticated || !window.gAccessToken) {
+      if (!window.isAuthenticated) {
         if (currentState) currentState.files = [];
         renderFilteredTable();
         updateDynamicMetrics();
@@ -7917,7 +8675,7 @@
     }
 
     window.startProcessing = async function(force = false, selectedFileIds = null, customTitles = null) {
-      if (!window.isAuthenticated || !window.gAccessToken) {
+      if (!window.isAuthenticated || (!window.gAccessToken && !window.serverAuthActive)) {
         showToast('Please connect your Google Account first.', 'error');
         handleConnectClick();
         return;
@@ -8293,5 +9051,699 @@
       <span class="absolute -top-1.5 -right-1.5 text-[8px] font-bold px-1 bg-[var(--bg-main)] text-[var(--text-muted)] border border-[var(--border-main)] leading-tight select-none">D</span>
     </button>
   </div>
+  <!-- Delete Confirmation Modal (themed warning popup) -->
+  <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl max-w-md w-full p-5 shadow-2xl text-[var(--text-main)]" role="dialog" aria-modal="true">
+      <div class="flex items-start gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/40 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        </div>
+        <div class="space-y-1.5 min-w-0">
+          <h3 class="font-bold text-[15px] leading-tight">Delete this video?</h3>
+          <p class="text-[11.5px] text-[var(--text-muted)] leading-relaxed">This will permanently remove it from your YouTube channel and dashboard. This action cannot be undone.</p>
+          <p id="deleteConfirmTitle" class="font-mono-code text-[11px] font-semibold text-[var(--text-main)] bg-[var(--bg-subcard)] border border-[var(--border-main)] rounded-lg px-2.5 py-1.5 truncate"></p>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2.5 mt-5">
+        <button type="button" onclick="closeDeleteConfirm()" class="h-9 px-4 rounded-lg border border-[var(--border-main)] bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors">Cancel</button>
+        <button type="button" onclick="performDeleteVideo()" class="h-9 px-5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clone to Batches Modal (one upload → one copy per batch) -->
+  <div id="cloneBatchesModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl max-w-md w-full p-5 shadow-2xl text-[var(--text-main)]" role="dialog" aria-modal="true">
+      <div class="flex items-start gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-[color-mix(in_srgb,var(--accent-orange)_12%,transparent)] border border-[color-mix(in_srgb,var(--accent-orange)_35%,transparent)] flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-[var(--accent-orange)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="space-y-1 min-w-0 flex-1">
+          <h3 class="font-bold text-[15px] leading-tight">Clone to Batches</h3>
+          <p class="text-[11.5px] text-[var(--text-muted)] leading-relaxed">One upload, multiple batches — a separate copy is created for each batch.</p>
+          <p class="text-[10.5px] text-[var(--text-subtle)] leading-relaxed">This-Device uploads can be cloned within 30 minutes of upload (the kept copy auto-deletes after that).</p>
+          <p id="cloneVideoTitle" class="font-mono-code text-[11px] font-semibold text-[var(--text-main)] bg-[var(--bg-subcard)] border border-[var(--border-main)] rounded-lg px-2.5 py-1.5 truncate"></p>
+        </div>
+        <button type="button" onclick="closeCloneModal()" class="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--btn-secondary-hover)] cursor-pointer shrink-0" title="Close">×</button>
+      </div>
+
+      <div class="mt-4 space-y-1">
+        <label class="font-mono-code text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Batch codes — one per line (or comma-separated)</label>
+        <textarea
+          id="cloneBatchesInput"
+          rows="4"
+          oninput="updateCloneCount()"
+          placeholder="PW-27LJ272MA&#10;PW-28XYZ&#10;TEST-BATCH"
+          class="w-full bg-[var(--bg-subcard)] border border-[var(--border-main)] rounded-lg px-3 py-2 font-mono-code text-xs text-[var(--text-main)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:border-[var(--btn-primary-bg)] resize-y"
+        ></textarea>
+      </div>
+
+      <div class="mt-3 space-y-1">
+        <label class="font-mono-code text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Add to title (optional) — use {batch} to insert the batch code</label>
+        <input
+          type="text"
+          id="cloneSuffixInput"
+          oninput="updateCloneCount()"
+          placeholder="e.g. - {batch}"
+          class="w-full bg-[var(--bg-subcard)] border border-[var(--border-main)] rounded-lg px-3 py-2 font-mono-code text-xs text-[var(--text-main)] placeholder:text-[var(--text-subtle)] focus:outline-none focus:border-[var(--btn-primary-bg)]"
+        />
+      </div>
+
+      <p id="cloneCountHint" class="mt-3 font-mono-code text-[10.5px] text-[var(--text-muted)]">0 copies — enter batch codes</p>
+
+      <div class="flex items-center justify-end gap-2.5 mt-4">
+        <button type="button" onclick="closeCloneModal()" class="h-9 px-4 rounded-lg border border-[var(--border-main)] bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors">Cancel</button>
+        <button type="button" id="cloneSubmitBtn" onclick="submitCloneBatches()" disabled class="h-9 px-5 rounded-lg bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] text-xs font-bold uppercase tracking-wider cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity">Clone</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Studio Redesign: Sidebar View Switcher & Hide/Unhide ═══ -->
+  <script>
+    (function () {
+      var VIEW_TITLES = {
+        upload: 'Upload Pipeline',
+        library: 'Video Library',
+        thumbcraft: 'ThumbCraft Studio'
+      };
+      var VIEW_IDS = ['upload', 'library', 'thumbcraft'];
+      var NAV_FOR_VIEW = { upload: 'navViewUpload', library: 'navViewLibrary', thumbcraft: 'navViewThumb' };
+      var MOBILE_BP = 1024;
+      // View guard: boot-time restore vs real user navigation
+      var studioBooted = false;
+      var userNavigated = false;
+      var bootView = 'upload';
+
+      function isMobileLayout() { return window.innerWidth < MOBILE_BP; }
+
+      /* Mobile drawer: slide-in overlay */
+      function toggleSidebarDrawer(open) {
+        var sb = document.getElementById('appSidebar');
+        var bd = document.getElementById('sidebarBackdrop');
+        if (!sb) return;
+        sb.classList.toggle('-translate-x-full', !open);
+        if (bd) bd.classList.toggle('hidden', !open);
+        document.body.style.overflow = open ? 'hidden' : '';
+      }
+
+      /* Desktop: collapse / expand sidebar (persisted, pre-paint safe) */
+      function setSidebarCollapsed(collapsed) {
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        document.documentElement.classList.toggle('sb-collapsed', collapsed);
+        try { localStorage.setItem('om_sidebar', collapsed ? 'hidden' : 'open'); } catch (e) {}
+      }
+
+      /* Header hamburger: opens drawer on mobile, toggles collapse on desktop */
+      function toggleSidebar() {
+        if (isMobileLayout()) {
+          var sb = document.getElementById('appSidebar');
+          var isOpen = sb && !sb.classList.contains('-translate-x-full');
+          toggleSidebarDrawer(!isOpen);
+        } else {
+          setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+        }
+      }
+
+      /* Close (sidebar arrow / backdrop / nav click): mobile closes drawer,
+         desktop collapses */
+      function closeSidebar() {
+        if (isMobileLayout()) toggleSidebarDrawer(false);
+        else setSidebarCollapsed(true);
+      }
+      window.toggleSidebar = toggleSidebar;
+      window.closeSidebar = closeSidebar;
+      window.toggleSidebarDrawer = toggleSidebarDrawer;
+      window.setSidebarCollapsed = setSidebarCollapsed;
+
+      /* ── Upload Pipeline: source mode switcher (Drive ⇄ This Device) ── */
+      function moveManualPanel() {
+        var mm = document.getElementById('mode-manual');
+        var shell = document.getElementById('manualUploadModal');
+        if (!mm || !shell || mm.dataset.ready) return;
+        var panel = shell.querySelector(':scope > div');
+        if (!panel) return;
+        // Drop the modal title strip
+        var head = panel.children[0];
+        if (head && head.querySelector('h3')) head.remove();
+        // Body: unwrap modal scroll/padding constraints
+        var body = panel.children[0];
+        if (body) body.classList.remove('max-h-[80vh]', 'overflow-y-auto', 'p-5');
+        // Footer: drop Cancel, keep Start, restyle into a launch bar
+        var foot = panel.children[panel.children.length - 1];
+        if (foot && foot.querySelector('#startManualUploadBtn')) {
+          var cancel = foot.querySelector('button[onclick="closeManualUploadModal()"]');
+          if (cancel) cancel.remove();
+          foot.className = 'flex items-center justify-between gap-3 flex-wrap rounded-2xl border border-[var(--border-main)] p-4';
+          foot.style.background = 'linear-gradient(135deg, rgba(249,177,122,0.12), rgba(103,111,157,0.07))';
+          if (!foot.querySelector('.launch-hint')) {
+            foot.insertAdjacentHTML('afterbegin',
+              '<div class="launch-hint flex items-center gap-3">' +
+              '<span class="w-6 h-6 rounded-lg bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center text-[11px] font-bold shrink-0">3</span>' +
+              '<div><div class="font-bold text-[13.5px] text-[var(--text-main)] leading-tight">Ready to publish</div>' +
+              '<div class="font-mono-code text-[10px] text-[var(--text-muted)] leading-tight">pick a video, set details — thumbnail sails with it</div></div></div>');
+          }
+          var startBtn = foot.querySelector('#startManualUploadBtn');
+          if (startBtn) startBtn.classList.add('h-10');
+        }
+        panel.className = 'space-y-4 text-[var(--text-main)]';
+        mm.appendChild(panel);
+        mm.dataset.ready = '1';
+        if (typeof setupManualDropzoneListeners === 'function') setupManualDropzoneListeners();
+      }
+
+      function switchUploadMode(mode) {
+        var manual = mode === 'manual';
+        var md = document.getElementById('mode-drive');
+        var mm = document.getElementById('mode-manual');
+        if (!md || !mm) return;
+        if (manual && !mm.dataset.ready) moveManualPanel();
+        md.classList.toggle('hidden', manual);
+        mm.classList.toggle('hidden', !manual);
+        var bd = document.getElementById('modeDriveBtn');
+        var bm = document.getElementById('modeManualBtn');
+        if (bd) bd.classList.toggle('active', !manual);
+        if (bm) bm.classList.toggle('active', manual);
+        try { localStorage.setItem('om_upload_mode', manual ? 'manual' : 'drive'); } catch (e) {}
+      }
+      window.switchUploadMode = switchUploadMode;
+
+      // Legacy entry points now land on the pipeline page in This-Device mode
+      window.openManualUploadModal = function () {
+        switchAppView('upload', { keepDrawer: true });
+        switchUploadMode('manual');
+      };
+
+      /* ── Library: List ⇄ Grid view ── */
+      var paginationNode = null; // kept out of innerHTML wipes so both views share it
+
+      /* ── Inkwise-style relative time ("12m ago", "Apr 18") ── */
+      function timeAgoStr(ts) {
+        if (!ts) return '';
+        var t = new Date(ts).getTime();
+        if (!t || isNaN(t)) return '';
+        var diff = Date.now() - t;
+        if (diff < 0) diff = 0;
+        var m = Math.floor(diff / 60000);
+        if (m < 1) return 'just now';
+        if (m < 60) return m + 'm ago';
+        var h = Math.floor(m / 60);
+        if (h < 24) return h + 'h ago';
+        var d = Math.floor(h / 24);
+        if (d < 7) return d + 'd ago';
+        return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      }
+      function getFileTimeAgo(f) {
+        if (!f) return '';
+        var ts = f.uploadedAt || f.createdTime || null;
+        if (!ts) {
+          var ymd = (typeof getFileYMD === 'function') ? getFileYMD(f) : null;
+          if (ymd && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) ts = ymd + 'T00:00:00';
+        }
+        return timeAgoStr(ts);
+      }
+
+      /* ── Sidebar: Recent uploads (Inkwise "Last Updates") ── */
+      function updateSideRecent() {
+        var wrap = document.getElementById('sideRecentWrap');
+        var list = document.getElementById('sideRecentList');
+        if (!wrap || !list) return;
+        var files = (window.currentState && currentState.files) ? currentState.files : [];
+        var seen = {};
+        var items = [];
+        for (var i = 0; i < files.length && items.length < 4; i++) {
+          var f = files[i];
+          if (!f || f.status === 'uploading' || f.status === 'queued') continue;
+          var vid = f.videoId || f.id;
+          if (!vid || seen[vid]) continue;
+          seen[vid] = 1;
+          items.push({
+            id: vid,
+            title: f.customTitle || f.name || 'Untitled video',
+            ago: getFileTimeAgo(f)
+          });
+        }
+        if (!items.length) { wrap.classList.add('hidden'); return; }
+        wrap.classList.remove('hidden');
+        var sc = document.getElementById('sideRecentCount');
+        var total = document.getElementById('sourceCountAll');
+        if (sc) sc.textContent = total ? (total.textContent || '0').trim() : String(items.length);
+        list.innerHTML = items.map(function (it) {
+          var safe = escapeHtml(it.title).replace(/"/g, '&quot;');
+          return '<button type="button" class="side-recent-item" title="' + safe + '" onclick="switchAppView(\'library\', { keepDrawer: true }); openVideoModal(\'' + it.id + '\')">' +
+            '<span class="side-recent-dot"></span>' +
+            '<span class="side-recent-title">' + escapeHtml(it.title) + '</span>' +
+            (it.ago ? '<span class="side-recent-time">' + it.ago + '</span>' : '') +
+          '</button>';
+        }).join('');
+      }
+
+      function renderGridViewFromTable() {
+        var grid = document.getElementById('gridViewWrap');
+        if (!grid || grid.classList.contains('hidden')) return;
+        var body = document.getElementById('trackingTableBody');
+        if (!body) return;
+
+        var cards = [];
+        body.querySelectorAll('tr').forEach(function (tr) {
+          var sc = tr.querySelector('td[id^="status-cell-"]');
+          if (!sc) return; // skip empty / auth-gate rows
+          var fid = sc.id.replace('status-cell-', '');
+          var f = null;
+          if (window.currentState && currentState.files) {
+            f = currentState.files.find(function (x) { return x.id === fid || x.videoId === fid; }) || null;
+          }
+          var title = 'Untitled';
+          var tEl = tr.querySelector('[id^="title-text-"]');
+          if (tEl) {
+            var tb = tEl.querySelector('.font-bold');
+            title = tb ? tb.textContent : tEl.textContent;
+          }
+          var thumb = '';
+          var timg = tr.querySelector('img[id^="table-thumb-img-"]');
+          if (timg && timg.getAttribute('src')) thumb = timg.getAttribute('src');
+          if (!thumb && f && window.tableThumbCache) thumb = window.tableThumbCache[f.id] || window.tableThumbCache[f.videoId] || '';
+          if (!thumb && f && f.thumbnailUrl) thumb = f.thumbnailUrl;
+          var ytId = (typeof extractYouTubeVideoId === 'function' && f) ? extractYouTubeVideoId(f) : ((f && f.videoId) || null);
+          var isYt = !!(ytId && String(ytId).length === 11);
+          if (!thumb && isYt) thumb = 'https://i.ytimg.com/vi/' + ytId + '/mqdefault.jpg';
+          var batch = (window.resolveFileBatch && f) ? window.resolveFileBatch(f) : '—';
+          var dt = formatFileDateTime(f || {});
+
+          // Copy link: read the EXACT embed link from the row's own Copy button
+          // (single source of truth — grid always matches what list view copies)
+          var embed = '';
+          var copyBtn = tr.querySelector('button[title="Copy Embed Link"]');
+          if (copyBtn) {
+            var oc = copyBtn.getAttribute('onclick') || '';
+            var om = oc.match(/copyToClipboard\('([^']*)'/);
+            if (om && om[1]) embed = om[1];
+          }
+          if (!embed && f) {
+            var yId = (typeof extractYouTubeVideoId === 'function') ? extractYouTubeVideoId(f) : (f.videoId || null);
+            var yFlag = (typeof isYouTubeVideo === 'function') ? isYouTubeVideo(f) : false;
+            if (yFlag && yId) embed = 'https://www.youtube.com/embed/' + yId;
+            else if (f.youtubeUrl) embed = f.youtubeUrl;
+            else embed = 'https://drive.google.com/file/d/' + fid + '/preview';
+          }
+          if (!embed) embed = 'https://drive.google.com/file/d/' + fid + '/preview';
+
+          cards.push({
+            id: fid, title: title, thumb: thumb, batch: batch, date: dt.date,
+            ago: getFileTimeAgo(f),
+            status: f ? f.status : 'completed', pct: f ? (f.percentage || 0) : 100,
+            isYt: isYt, videoId: (f && f.videoId) || fid, embed: embed
+          });
+        });
+
+        var html;
+        if (cards.length === 0) {
+          html = '<div class="col-span-full py-12 text-center font-mono-code text-xs text-[var(--text-muted)] border border-dashed border-[var(--border-main)] rounded-xl">no videos yet — grid view is empty</div>';
+        } else {
+          html = cards.map(function (c) {
+            var badge;
+            if (c.status === 'completed') badge = '<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[9px] font-bold uppercase">Ready</span>';
+            else if (c.status === 'uploading') badge = '<span class="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/40 text-[9px] font-bold uppercase">' + c.pct + '%</span>';
+            else if (c.status === 'failed') badge = '<span class="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[9px] font-bold uppercase">Failed</span>';
+            else badge = '<span class="px-2 py-0.5 rounded-md bg-[var(--bg-subcard)] text-[var(--text-muted)] border border-[var(--border-main)] text-[9px] font-bold uppercase">Queued</span>';
+
+          var embed = c.embed || ('https://drive.google.com/file/d/' + c.id + '/preview');
+          var safeTitle = escapeHtml(c.title).replace(/"/g, '&quot;');
+
+            return '<div class="grid-video-card" onclick="openVideoModal(\'' + c.id + '\')" title="Click to play">' +
+              '<div class="grid-video-thumb">' +
+                (c.thumb ? '<img src="' + c.thumb + '" alt="" loading="lazy">' : '') +
+                '<span class="grid-play-badge"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>' +
+                '<span class="grid-status-badge">' + badge + '</span>' +
+                (c.batch && c.batch !== '—' ? '<span class="grid-batch-chip" title="Batch code">' + escapeHtml(c.batch) + '</span>' : '') +
+              '</div>' +
+              '<div class="p-2.5 space-y-1.5">' +
+                '<div class="grid-card-title" title="' + safeTitle + '">' + safeTitle + '</div>' +
+                '<div class="flex items-center justify-between gap-2 text-[9.5px] text-[var(--text-muted)]">' +
+                  '<span class="truncate font-semibold">' + escapeHtml(c.ago || c.date) + '</span>' +
+                  (c.isYt
+                    ? '<span class="grid-src-yt shrink-0">▶ YouTube</span>'
+                    : '<span class="grid-src-drive shrink-0">Drive</span>') +
+                '</div>' +
+                '<div class="grid-card-actions">' +
+                  '<button type="button" title="Play" onclick="event.stopPropagation(); openVideoModal(\'' + c.id + '\')">▶</button>' +
+                  '<button type="button" title="Copy link" onclick="event.stopPropagation(); copyToClipboard(\'' + embed + '\', \'Embed Link\')">🔗</button>' +
+                  '<button type="button" title="Edit & thumbnail" onclick="event.stopPropagation(); openEditModal(\'' + c.id + '\')">✏️</button>' +
+                  '<button type="button" title="Clone to Batches — one upload, multiple batches" onclick="event.stopPropagation(); openCloneModal(\'' + c.id + '\', \'' + safeTitle.replace(/'/g, '&#39;') + '\')">⧉</button>' +
+                  '<button type="button" title="Delete" onclick="event.stopPropagation(); deleteVideo(\'' + c.id + '\')">✕</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        }
+
+        grid.innerHTML = html;
+        if (paginationNode) grid.appendChild(paginationNode);
+      }
+
+      function movePaginationBar(view) {
+        var lw = document.getElementById('listViewWrap');
+        var gw = document.getElementById('gridViewWrap');
+        if (!paginationNode && document.getElementById('tablePaginationContainer')) {
+          paginationNode = document.getElementById('tablePaginationContainer');
+        }
+        if (!paginationNode || !lw || !gw) return;
+        if (view === 'grid' && paginationNode.parentElement !== gw) gw.appendChild(paginationNode);
+        if (view !== 'grid' && paginationNode.parentElement !== lw) lw.appendChild(paginationNode);
+      }
+
+      function switchLibraryView(view) {
+        var grid = view === 'grid';
+        var lw = document.getElementById('listViewWrap');
+        var gw = document.getElementById('gridViewWrap');
+        if (!lw || !gw) return;
+        lw.classList.toggle('hidden', grid);
+        gw.classList.toggle('hidden', !grid);
+        var bl = document.getElementById('libViewListBtn');
+        var bg = document.getElementById('libViewGridBtn');
+        if (bl) bl.classList.toggle('active', !grid);
+        if (bg) bg.classList.toggle('active', grid);
+        movePaginationBar(view);
+        if (grid) renderGridViewFromTable();
+        try { localStorage.setItem('om_libview', grid ? 'grid' : 'list'); } catch (e) {}
+      }
+      window.switchLibraryView = switchLibraryView;
+
+      // Keep the grid in sync with every table render (filters, search, sync, pagination)
+      var origRFT = window.renderFilteredTable;
+      window.renderFilteredTable = function () {
+        window.__gridAllMode = (document.getElementById('gridViewWrap') && !document.getElementById('gridViewWrap').classList.contains('hidden'));
+        if (typeof origRFT === 'function') origRFT.apply(this, arguments);
+        renderGridViewFromTable();
+        updateSideRecent();
+      };
+
+      // ── Themed delete confirmation (replaces native confirm popup) ──
+      var pendingDeleteId = null;
+      window.deleteVideo = function (fileId) {
+        pendingDeleteId = fileId;
+        var f = (window.currentState && currentState.files) ? currentState.files.find(function (x) { return x.id === fileId || x.videoId === fileId; }) : null;
+        var t = document.getElementById('deleteConfirmTitle');
+        if (t) t.textContent = f ? (f.customTitle || f.name || 'Untitled video') : 'Untitled video';
+        var m = document.getElementById('deleteConfirmModal');
+        if (m) m.classList.remove('hidden');
+      };
+      window.closeDeleteConfirm = function () {
+        var m = document.getElementById('deleteConfirmModal');
+        if (m) m.classList.add('hidden');
+        pendingDeleteId = null;
+      };
+      window.performDeleteVideo = async function () {
+        var fileId = pendingDeleteId;
+        closeDeleteConfirm();
+        if (!fileId) return;
+        showToast('Deleting video from YouTube...', 'info');
+        try {
+          const res = await fetch('/api/delete-video', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.gAccessToken || ''}` },
+            body: JSON.stringify({ fileId, deleteFromYouTube: true })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('✔ Video deleted from YouTube channel.', 'success');
+            loadJobStatus();
+          } else {
+            showToast('Failed to delete: ' + data.error, 'error');
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, 'error');
+        }
+      };
+
+      /* ── Clone to Batches: one upload → multiple batch copies ── */
+      var cloneFileId = null;
+      function parseCloneBatches() {
+        var raw = document.getElementById('cloneBatchesInput');
+        if (!raw) return [];
+        var parts = String(raw.value || '').split(/[\n,;]+/);
+        var seen = {};
+        var out = [];
+        parts.forEach(function (p) {
+          var b = p.trim();
+          if (b && !seen[b.toLowerCase()]) { seen[b.toLowerCase()] = 1; out.push(b); }
+        });
+        return out;
+      }
+      window.updateCloneCount = function () {
+        var batches = parseCloneBatches();
+        var hint = document.getElementById('cloneCountHint');
+        var btn = document.getElementById('cloneSubmitBtn');
+        if (hint) {
+          hint.textContent = batches.length === 0
+            ? '0 copies — enter batch codes'
+            : batches.length + ' cop' + (batches.length === 1 ? 'y' : 'ies') + ' will be created: ' + batches.join(', ');
+        }
+        if (btn) {
+          btn.disabled = batches.length === 0;
+          btn.textContent = batches.length > 0 ? ('Clone × ' + batches.length) : 'Clone';
+        }
+      };
+      window.openCloneModal = function (fileId, titleHint) {
+        var f = (window.currentState && currentState.files)
+          ? currentState.files.find(function (x) { return x.id === fileId || x.videoId === fileId; })
+          : null;
+        cloneFileId = fileId;
+        var title = f ? (f.customTitle || f.name || '') : '';
+        if (!title && titleHint) title = titleHint;
+        var t = document.getElementById('cloneVideoTitle');
+        if (t) t.textContent = title || 'Untitled video';
+        var ta = document.getElementById('cloneBatchesInput');
+        if (ta) ta.value = '';
+        var sfx = document.getElementById('cloneSuffixInput');
+        if (sfx) sfx.value = '';
+        window.updateCloneCount();
+        var m = document.getElementById('cloneBatchesModal');
+        if (m) m.classList.remove('hidden');
+        if (ta) setTimeout(function () { ta.focus(); }, 50);
+      };
+      window.closeCloneModal = function () {
+        var m = document.getElementById('cloneBatchesModal');
+        if (m) m.classList.add('hidden');
+        cloneFileId = null;
+      };
+      window.submitCloneBatches = async function () {
+        var batches = parseCloneBatches();
+        if (!cloneFileId || batches.length === 0) return;
+        var sfxEl = document.getElementById('cloneSuffixInput');
+        var suffix = sfxEl ? sfxEl.value.trim() : '';
+        var btn = document.getElementById('cloneSubmitBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Cloning...'; }
+        try {
+          const res = await fetch('/api/clone-batches', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': typeof getPersistentUserId === 'function' ? getPersistentUserId() : '',
+              'Authorization': `Bearer ${window.gAccessToken || ''}`
+            },
+            body: JSON.stringify({ fileId: cloneFileId, batches: batches, titleSuffix: suffix })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('⧉ ' + data.clonedCount + ' copies added to the upload queue', 'success');
+            window.closeCloneModal();
+            if (typeof loadJobStatus === 'function') loadJobStatus();
+          } else {
+            showToast('Clone failed: ' + (data.error || 'unknown error'), 'error');
+            window.updateCloneCount();
+          }
+        } catch (err) {
+          showToast('Error: ' + err.message, 'error');
+          window.updateCloneCount();
+        }
+      };
+
+      // ── Keyboard shortcuts: / = search · Esc = close · G = grid toggle ──
+      document.addEventListener('keydown', function (e) {
+        var el = e.target || {};
+        var tag = (el.tagName || '').toLowerCase();
+        var typing = tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable;
+
+        if (e.key === 'Escape') {
+          var cm = document.getElementById('cloneBatchesModal');
+          if (cm && !cm.classList.contains('hidden')) {
+            e.preventDefault();
+            window.closeCloneModal();
+            return;
+          }
+          var dm = document.getElementById('deleteConfirmModal');
+          if (dm && !dm.classList.contains('hidden')) {
+            e.preventDefault();
+            closeDeleteConfirm();
+          }
+          return; // app's own Esc handler closes the other modals
+        }
+
+        if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+
+        if (e.key === '/') {
+          e.preventDefault();
+          switchAppView('library', { keepDrawer: true });
+          var s = document.getElementById('tableSearchInput');
+          if (s) { s.focus(); s.select(); }
+        } else if (e.key === 'g' || e.key === 'G') {
+          var cur = 'list';
+          try { cur = localStorage.getItem('om_libview') || 'list'; } catch (err) {}
+          switchLibraryView(cur === 'grid' ? 'list' : 'grid');
+        }
+      });
+
+      function switchAppView(view, opts) {
+        if (studioBooted) userNavigated = true;
+        var v = (VIEW_IDS.indexOf(view) !== -1) ? view : 'upload';
+        window.__omViewIntent = v;
+        VIEW_IDS.forEach(function (id) {
+          var el = document.getElementById('view-' + id);
+          if (el) el.classList.toggle('hidden', id !== v);
+          var nav = document.getElementById(NAV_FOR_VIEW[id]);
+          if (nav) nav.classList.toggle('active', id === v);
+        });
+
+        var title = document.getElementById('headerViewTitle');
+        if (title) title.textContent = VIEW_TITLES[v];
+
+        // Lazy-load the ThumbCraft embed on first visit only
+        if (v === 'thumbcraft') {
+          var fr = document.getElementById('thumbcraftFrame');
+          if (fr && !fr.getAttribute('src') && fr.getAttribute('data-src')) fr.setAttribute('src', fr.getAttribute('data-src'));
+        }
+
+        try { localStorage.setItem('om_view', v); } catch (e) {}
+
+        if (!(opts && opts.keepDrawer)) {
+          if (isMobileLayout()) toggleSidebarDrawer(false);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.switchAppView = switchAppView;
+
+      // Pull the date-range picker up into the library toolbar (pills row)
+      function moveDateRangeIntoToolbar() {
+        var calWrap = document.getElementById('calendarWrapper');
+        var cluster = document.querySelector('#filterStatsBar > div.relative');
+        if (!calWrap || !cluster) return;
+        var oldWrap = calWrap.parentElement;
+        cluster.insertBefore(calWrap, cluster.firstChild);
+        if (oldWrap && oldWrap !== cluster && oldWrap.children.length === 0) oldWrap.remove();
+      }
+
+      // Mirror the library total (source count) into the sidebar badge + section header
+      function mirrorLibCount() {
+        var src = document.getElementById('sourceCountAll');
+        var val = src ? (src.textContent || '0').trim() : '0';
+        var dst = document.getElementById('sideLibCount');
+        if (dst) dst.textContent = val;
+        var hc = document.getElementById('libHeaderCount');
+        if (hc) hc.textContent = val;
+        var rc = document.getElementById('sideRecentCount');
+        if (rc) rc.textContent = val;
+      }
+
+      function initStudio() {
+        var v = 'upload';
+        try { v = localStorage.getItem('om_view') || 'upload'; } catch (e) {}
+        bootView = (VIEW_IDS.indexOf(v) !== -1) ? v : 'upload';
+        switchAppView(bootView, { keepDrawer: true });
+        studioBooted = true; // nav clicks after this point are real user navigation
+
+        // Restore upload source mode
+        var um = 'drive';
+        try { um = localStorage.getItem('om_upload_mode') || 'drive'; } catch (e) {}
+        switchUploadMode(um === 'manual' ? 'manual' : 'drive');
+
+        moveDateRangeIntoToolbar();
+        mirrorLibCount();
+
+        // Restore library view mode (list / grid)
+        var lv = 'list';
+        try { lv = localStorage.getItem('om_libview') || 'list'; } catch (e) {}
+        switchLibraryView(lv === 'grid' ? 'grid' : 'list');
+
+        // Restore desktop sidebar collapsed state
+        var savedSide = 'open';
+        try { savedSide = localStorage.getItem('om_sidebar') || 'open'; } catch (e) {}
+        if (!isMobileLayout() && savedSide === 'hidden') setSidebarCollapsed(true);
+
+        var metricEl = document.getElementById('metricTotal');
+        var srcAll = document.getElementById('sourceCountAll');
+        if (window.MutationObserver) {
+          if (metricEl) new MutationObserver(mirrorLibCount).observe(metricEl, { childList: true, characterData: true, subtree: true });
+          if (srcAll) new MutationObserver(mirrorLibCount).observe(srcAll, { childList: true, characterData: true, subtree: true });
+        }
+        mirrorLibCount();
+        updateSideRecent();
+        // Data arrives async (sync/history load) — refresh the recent list once it lands
+        setTimeout(updateSideRecent, 1200);
+        setTimeout(updateSideRecent, 3500);
+
+        // Boot re-assert: if anything flipped the view during startup (auth flow,
+        // SSE, legacy handlers), snap back to the view the user refreshed on
+        setTimeout(function () {
+          if (userNavigated) return; // user already chose — respect it
+          var want = (VIEW_IDS.indexOf(bootView) !== -1) ? bootView : 'upload';
+          var visible = VIEW_IDS.filter(function (id) {
+            var el = document.getElementById('view-' + id);
+            return el && !el.classList.contains('hidden');
+          });
+          if (visible.length !== 1 || visible[0] !== want) switchAppView(want, { keepDrawer: true });
+        }, 900);
+
+        // ── View enforcer (self-healing): exactly ONE view visible at any time,
+        //    and keep the nav highlight + header title truthful to the visible view ──
+        if (window.MutationObserver) {
+          var viewEls = {};
+          VIEW_IDS.forEach(function (id) {
+            var el = document.getElementById('view-' + id);
+            if (el) viewEls[id] = el;
+          });
+          var enforcerBusy = false;
+          function syncViewChrome(viewName) {
+            VIEW_IDS.forEach(function (id) {
+              var nav = document.getElementById(NAV_FOR_VIEW[id]);
+              if (nav) nav.classList.toggle('active', id === viewName);
+            });
+            var t2 = document.getElementById('headerViewTitle');
+            if (t2) t2.textContent = VIEW_TITLES[viewName] || viewName;
+          }
+          function enforceViews() {
+            if (enforcerBusy) return;
+            var visible = VIEW_IDS.filter(function (id) {
+              return viewEls[id] && !viewEls[id].classList.contains('hidden');
+            });
+            if (visible.length !== 1) { // stacked, none, or unknown — resolve to intended view
+              enforcerBusy = true;
+              var want = window.__omViewIntent || bootView;
+              if (VIEW_IDS.indexOf(want) === -1) want = 'upload';
+              VIEW_IDS.forEach(function (id) {
+                if (viewEls[id]) viewEls[id].classList.toggle('hidden', id !== want);
+              });
+              enforcerBusy = false;
+              visible = [want];
+            }
+            var cur = visible[0];
+            var nav = document.getElementById(NAV_FOR_VIEW[cur]);
+            var title = document.getElementById('headerViewTitle');
+            var navOK = nav ? nav.classList.contains('active') : true;
+            var titleOK = title ? title.textContent === (VIEW_TITLES[cur] || cur) : true;
+            if (!navOK || !titleOK) syncViewChrome(cur);
+          }
+          Object.keys(viewEls).forEach(function (id) {
+            new MutationObserver(enforceViews).observe(viewEls[id], { attributes: true, attributeFilter: ['class'] });
+          });
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initStudio);
+      } else {
+        initStudio();
+      }
+    })();
+  </script>
 </body>
 </html>
