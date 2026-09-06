@@ -693,8 +693,10 @@
       #calendarWrapper { flex: 1 1 calc(100% - 72px); min-width: 0; }
       #dateRangeInputBtn { width: 100%; justify-content: space-between; padding: 6px 9px; }
       #dateRangeInputText { font-size: 11px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      #sourceFilterGroup { flex: 1 1 calc(100% - 108px); display: flex; }
+      #sourceFilterGroup { flex: 1 1 0; min-width: 120px; display: flex; }
       #sourceFilterGroup > button { flex: 1 1 0; min-width: 0; text-align: center; padding-left: 2px; padding-right: 2px; white-space: nowrap; }
+      /* phone par Drive filter chhupa do — EXPORT usi line me aa jata hai */
+      #sourceFilterDrive { display: none !important; }
       #exportDropdownWrapper { flex: 0 0 auto; }
       /* Calendar popover: screen ke andar centered, button se chipka hua */
       #calendarPopover { left: 50% !important; right: auto !important; top: calc(100% + 6px) !important; transform: translateX(-50%); width: min(300px, calc(100vw - 20px)); z-index: 80 !important; }
