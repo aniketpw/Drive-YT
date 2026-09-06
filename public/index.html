@@ -6,7 +6,7 @@
   <title>Drive → YouTube Cloud Video Portal</title>
   <!-- Favicon (SVG Play Button Logo) -->
   <link rel="icon" type="image/png" href="pw-logo.png">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%231B1B1B'/%3E%3Cpath d='M67 42v96l80-48L67 42z' fill='%23FFFFFF'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="pw-logo.png">
   <!-- Instant Theme + Sidebar Initializer (0ms Non-Blocking, Pre-Paint) -->
   <script>
     (function() {
@@ -1414,13 +1414,13 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2 shrink-0 relative z-40 overflow-visible">
+        <div class="flex items-center gap-2 flex-wrap relative z-40 overflow-visible">
           <!-- List ⇄ Grid view toggle -->
           <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-[var(--bg-main)] border border-[var(--border-main)] mr-1">
-            <button type="button" id="libViewListBtn" onclick="switchLibraryView('list')" class="lib-view-btn active" title="List view">
+            <button type="button" id="libViewListBtn" onclick="switchLibraryView('list')" class="lib-view-btn" title="List view">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
-            <button type="button" id="libViewGridBtn" onclick="switchLibraryView('grid')" class="lib-view-btn" title="Grid view">
+            <button type="button" id="libViewGridBtn" onclick="switchLibraryView('grid')" class="lib-view-btn active" title="Grid view">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path stroke-linejoin="round" d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
             </button>
           </div>
@@ -9704,8 +9704,8 @@
           var s = document.getElementById('tableSearchInput');
           if (s) { s.focus(); s.select(); }
         } else if (e.key === 'g' || e.key === 'G') {
-          var cur = 'list';
-          try { cur = localStorage.getItem('om_libview') || 'list'; } catch (err) {}
+          var cur = 'grid';
+          try { cur = localStorage.getItem('om_libview') || 'grid'; } catch (err) {}
           switchLibraryView(cur === 'grid' ? 'list' : 'grid');
         }
       });
@@ -9777,8 +9777,8 @@
         mirrorLibCount();
 
         // Restore library view mode (list / grid)
-        var lv = 'list';
-        try { lv = localStorage.getItem('om_libview') || 'list'; } catch (e) {}
+        var lv = 'grid';
+        try { lv = localStorage.getItem('om_libview') || 'grid'; } catch (e) {}
         switchLibraryView(lv === 'grid' ? 'grid' : 'list');
 
         // Restore desktop sidebar collapsed state
