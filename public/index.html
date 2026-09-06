@@ -674,6 +674,21 @@
       .grid-card-actions { gap: 4px; }
       .grid-card-actions button { height: 24px; font-size: 9px; border-radius: 6px; }
     }
+    /* Mobile library toolbar: clean stacked rows instead of scattered chips */
+    @media (max-width: 640px) {
+      #filterStatsBar { padding: 10px; gap: 8px; }
+      #libStatPills { display: flex; width: 100%; flex-wrap: nowrap; gap: 6px; }
+      #libStatPills > button { flex: 1 1 0; min-width: 0; text-align: center; padding-left: 4px; padding-right: 4px; }
+      #libToolbarControls { display: flex; width: 100%; flex-wrap: wrap; gap: 6px; }
+      #calendarWrapper { flex: 1 1 calc(100% - 72px); min-width: 0; }
+      #dateRangeInputBtn { width: 100%; justify-content: space-between; padding: 6px 9px; }
+      #dateRangeInputText { font-size: 11px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #sourceFilterGroup { flex: 1 1 calc(100% - 108px); display: flex; }
+      #sourceFilterGroup > button { flex: 1 1 0; min-width: 0; text-align: center; padding-left: 2px; padding-right: 2px; white-space: nowrap; }
+      #exportDropdownWrapper { flex: 0 0 auto; }
+      /* Calendar popover: screen ke andar centered, button se chipka hua */
+      #calendarPopover { left: 50% !important; right: auto !important; top: calc(100% + 6px) !important; transform: translateX(-50%); width: min(300px, calc(100vw - 20px)); z-index: 80 !important; }
+    }
 
     /* ── Inkwise-style: batch chip overlay on grid thumbnails ── */
     .grid-batch-chip {
@@ -1349,7 +1364,7 @@
 
       <!-- Stats Filter Bar (Total, Uploaded, In Progress, Source Tabs) -->
       <div id="filterStatsBar" class="flex items-center justify-between gap-2 flex-wrap font-mono-code text-xs border border-[var(--border-main)] bg-[var(--bg-card)] p-2 relative z-30 overflow-visible">
-        <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0">
+        <div id="libStatPills" class="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0">
           <button
             type="button"
             id="filterPillAll"
@@ -1420,9 +1435,9 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap relative z-40 overflow-visible">
+        <div id="libToolbarControls" class="flex items-center gap-2 flex-wrap relative z-40 overflow-visible">
           <!-- List ⇄ Grid view toggle -->
-          <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-[var(--bg-main)] border border-[var(--border-main)] mr-1">
+          <div id="libViewToggle" class="flex items-center gap-0.5 p-0.5 rounded-lg bg-[var(--bg-main)] border border-[var(--border-main)] mr-1">
             <button type="button" id="libViewListBtn" onclick="switchLibraryView('list')" class="lib-view-btn" title="List view">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
@@ -1431,7 +1446,7 @@
             </button>
           </div>
           <!-- Segmented Source Filters -->
-          <div class="flex items-center border border-[var(--border-main)] bg-[var(--bg-card)] p-0.5 text-[10px] font-mono-code font-bold uppercase shrink-0">
+          <div id="sourceFilterGroup" class="flex items-center border border-[var(--border-main)] bg-[var(--bg-card)] p-0.5 text-[10px] font-mono-code font-bold uppercase shrink-0">
             <button type="button" id="sourceFilterAll" onclick="setSourceFilter('all')" class="px-2 py-0.5 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] cursor-pointer">All (<span id="sourceCountAll">0</span>)</button>
             <button type="button" id="sourceFilterYouTube" onclick="setSourceFilter('youtube')" class="px-2 py-0.5 text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer">YouTube (<span id="sourceCountYouTube">0</span>)</button>
             <button type="button" id="sourceFilterDrive" onclick="setSourceFilter('drive')" class="px-2 py-0.5 text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer">Drive (<span id="sourceCountDrive">0</span>)</button>
