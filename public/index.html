@@ -676,9 +676,19 @@
     }
     /* Mobile library toolbar: clean stacked rows instead of scattered chips */
     @media (max-width: 640px) {
-      #filterStatsBar { padding: 10px; gap: 8px; }
-      #libStatPills { display: flex; width: 100%; flex-wrap: nowrap; gap: 6px; }
-      #libStatPills > button { flex: 1 1 0; min-width: 0; text-align: center; padding-left: 4px; padding-right: 4px; }
+      /* header ke niche ki extra khali jagah hatao */
+      main { padding-top: 6px !important; }
+      #view-library, #view-thumbcraft { margin-top: 0 !important; }
+      #view-library > #libraryCard { padding-top: 12px; }
+      #filterStatsBar { padding: 10px; gap: 8px; margin-top: 2px; }
+      /* stat pills: 2 x 2 grid — IN PROGRESS kabhi teen line me nahi tootega */
+      #libStatPills { display: flex; width: 100%; flex-wrap: wrap; gap: 6px; }
+      #libStatPills > button {
+        flex: 1 1 calc(50% - 3px);
+        min-width: 0; text-align: center;
+        padding-left: 4px; padding-right: 4px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
       #libToolbarControls { display: flex; width: 100%; flex-wrap: wrap; gap: 6px; }
       #calendarWrapper { flex: 1 1 calc(100% - 72px); min-width: 0; }
       #dateRangeInputBtn { width: 100%; justify-content: space-between; padding: 6px 9px; }
@@ -688,6 +698,8 @@
       #exportDropdownWrapper { flex: 0 0 auto; }
       /* Calendar popover: screen ke andar centered, button se chipka hua */
       #calendarPopover { left: 50% !important; right: auto !important; top: calc(100% + 6px) !important; transform: translateX(-50%); width: min(300px, calc(100vw - 20px)); z-index: 80 !important; }
+      /* Export menu: button ke right se khule, screen ke andar */
+      #exportDropdownMenu { left: 0 !important; right: auto !important; width: min(260px, calc(100vw - 32px)); }
     }
 
     /* ── Inkwise-style: batch chip overlay on grid thumbnails ── */
